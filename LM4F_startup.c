@@ -45,6 +45,10 @@ void empty_def_handler(void);
 // this is the code for an hard fault.
 void hardfault_handler(void);
 
+extern void timer0_motors_interruption(void);
+extern void timer1_500ms_interruption(void);
+extern void uart0_interruption(void);
+
 //-----------------------------------------------------------------------------
 // 						     Variables declarations
 //-----------------------------------------------------------------------------
@@ -95,7 +99,7 @@ void(* myvectors[])(void) = {
 	empty_def_handler,		// GPIO Port D						19
 	empty_def_handler,		// GPIO Port E						20
 	empty_def_handler,		// UART 0							21
-	empty_def_handler,		// UART 1							22
+	uart0_interruption,		// UART 1							22
 	empty_def_handler,		// SSI 0							23
 	empty_def_handler,		// I2C 0							24
 	0,						// Reserved							25
@@ -108,9 +112,9 @@ void(* myvectors[])(void) = {
 	empty_def_handler,		// ADC 0 Seq 2						32
 	empty_def_handler,		// ADC 0 Seq 3						33
 	empty_def_handler,		// WDT 0 and 1						34
-	empty_def_handler,		// 16/32 bit timer 0 A				35
+	timer0_motors_interruption,// 16/32 bit timer 0 A				35
 	empty_def_handler,		// 16/32 bit timer 0 B				36
-	empty_def_handler,		// 16/32 bit timer 1 A				37
+	timer1_500ms_interruption,// 16/32 bit timer 1 A				37
 	empty_def_handler,		// 16/32 bit timer 1 B				38
 	empty_def_handler,		// 16/32 bit timer 2 A				39
 	empty_def_handler,		// 16/32 bit timer 2 B				40

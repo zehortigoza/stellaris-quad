@@ -1,42 +1,24 @@
-#include <stdint.h>
-#include <stdbool.h>
+#include "main.h"
+#include "agent.h"
 
-#include "inc/hw_ints.h"
-#include "inc/hw_gpio.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_sysctl.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/timer.h"
+int main(void)
+{
+    /*
+     * Enable lazy stacking for interrupt handlers.  This allows floating-point
+     * instructions to be used within interrupt handlers, but at the expense of
+     * extra stack usage.
+     */
+    FPUEnable();
+    FPULazyStackingEnable();
 
-// Basically here I'm checking that everything works fine.
-volatile unsigned long count;
-long var_init = 2;
+    //Precision Internal Oscillator 16mhz
+    SysCtlClockSet(SYSCTL_SYSDIV_1|SYSCTL_USE_OSC|SYSCTL_OSC_INT);
 
-// An interrupt function.
-void Timer1A_ISR(void);
+    //Enable processor interrupts.
+    IntMasterEnable();
 
-// main function.
-int main(void) {
-	SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_OSC_MAIN|SYSCTL_XTAL_16MHZ);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
-	TimerConfigure(TIMER1_BASE, TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_PERIODIC);
-	TimerControlStall(TIMER1_BASE, TIMER_A, true);
-	TimerLoadSet(TIMER1_BASE, TIMER_A, 2111);
-	TimerIntRegister(TIMER1_BASE, TIMER_A, Timer1A_ISR);
-	TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
-	count=3;
-	TimerEnable(TIMER1_BASE, TIMER_A);
-    while(1)
-    {	
-		var_init++;
-    }
-}
+    agent_init();
 
-// The interrupt function definition.
-void Timer1A_ISR(void){
-	TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
-	count++;
+    //Put processor to sleep
+    SysCtlSleep();
 }
