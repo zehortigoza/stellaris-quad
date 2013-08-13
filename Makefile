@@ -74,6 +74,9 @@ ODFLAGS = -S
 LIB_GCC_PATH=${shell ${CC} ${CFLAGS} -print-libgcc-file-name}
 LIBC_PATH=${shell ${CC} ${CFLAGS} -print-file-name=libc.a}
 LIBM_PATH=${shell ${CC} ${CFLAGS} -print-file-name=libm.a}
+#LIBC_PATH=/home/cypher/stellaris/newlib/arm-none-eabi/lib/thumb2/libc.a
+#LIBM_PATH=/home/cypher/stellaris/newlib/arm-none-eabi/lib/thumb2/libm.a
+
 
 # Uploader tool path.
 # Set a relative or absolute path to the upload tool program.
