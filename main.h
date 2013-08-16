@@ -12,8 +12,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#include "util.h"
-
 #include "inc/hw_ints.h"
 #include "inc/hw_gpio.h"
 #include "inc/hw_memmap.h"
@@ -27,5 +25,11 @@
 #include "driverlib/fpu.h"
 #include "driverlib/uart.h"
 #include "driverlib/timer.h"
+
+#define ENABLE_PRINTF 1
+
+#define RED_LED   GPIO_PIN_1
+#define BLUE_LED  GPIO_PIN_2
+#define GREEN_LED GPIO_PIN_3
 
 #endif

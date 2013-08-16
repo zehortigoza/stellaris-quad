@@ -130,10 +130,12 @@ static void _timer1_config(void)
     //enable timer1
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
     //configure to count down
-    TimerConfigure(TIMER1_BASE, TIMER_CFG_ONE_SHOT);
+    TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
     //value to count down
     TimerLoadSet(TIMER1_BASE, TIMER_A, SysCtlClockGet() / 2);
-    //enable interruption in timer
+    //enable interruption in timer1
+    IntEnable(INT_TIMER1A);
+    //enable generate a interruption in timer timeout
     TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
     //enable timer count
     TimerEnable(TIMER1_BASE, TIMER_A);
@@ -148,7 +150,7 @@ static void _timer1_reset(void)
 void agent_init(void)
 {
     z_value = 0;
-    //motors_init();
+    motors_init();
     procotol_init(_msg_cb);
     //mpu6050_init();
 

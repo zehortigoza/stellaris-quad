@@ -32,6 +32,7 @@
 
 #include "inc/hw_nvic.h"
 #include "inc/hw_types.h"
+#include <stdio.h>
 
 
 //-----------------------------------------------------------------------------
@@ -48,6 +49,10 @@ void nmi_handler(void);
 void empty_def_handler(void);
 // this is the code for an hard fault.
 void hardfault_handler(unsigned int * hardfault_args) ;
+
+extern void uart1_radio_interruption(void);
+extern void timer0_motors_interruption(void);
+extern void timer1_500ms_interruption(void);
 
 //-----------------------------------------------------------------------------
 //                 Variables declarations
@@ -99,7 +104,7 @@ void(* myvectors[])(void) = {
   empty_def_handler,    // GPIO Port D            19
   empty_def_handler,    // GPIO Port E            20
   empty_def_handler,    // UART 0             21
-  empty_def_handler,    // UART 1             22
+  uart1_radio_interruption,    // UART 1             22
   empty_def_handler,    // SSI 0              23
   empty_def_handler,    // I2C 0              24
   0,            // Reserved             25
@@ -112,9 +117,9 @@ void(* myvectors[])(void) = {
   empty_def_handler,    // ADC 0 Seq 2            32
   empty_def_handler,    // ADC 0 Seq 3            33
   empty_def_handler,    // WDT 0 and 1            34
-  empty_def_handler,    // 16/32 bit timer 0 A        35
+  timer0_motors_interruption,    // 16/32 bit timer 0 A        35
   empty_def_handler,    // 16/32 bit timer 0 B        36
-  empty_def_handler,    // 16/32 bit timer 1 A        37
+  timer1_500ms_interruption,    // 16/32 bit timer 1 A        37
   empty_def_handler,    // 16/32 bit timer 1 B        38
   empty_def_handler,    // 16/32 bit timer 2 A        39
   empty_def_handler,    // 16/32 bit timer 2 B        40
@@ -305,7 +310,7 @@ void hardfault_handler( unsigned int * hardfault_args ){
 
 
   // Just loop forever, so if you want to debug the processor it's running.
- unsigned int stacked_r0;
+  unsigned int stacked_r0;
   unsigned int stacked_r1;
   unsigned int stacked_r2;
   unsigned int stacked_r3;
@@ -333,12 +338,12 @@ void hardfault_handler( unsigned int * hardfault_args ){
   printf ("LR [R14] = %x  subroutine call return address\n", stacked_lr);
   printf ("PC [R15] = %x  program counter\n", stacked_pc);
   printf ("PSR = %x\n", stacked_psr);
-  printf ("BFAR = %x\n", (*((volatile unsigned long *)(0xE000ED38))));
-  printf ("CFSR = %x\n", (*((volatile unsigned long *)(0xE000ED28))));
-  printf ("HFSR = %x\n", (*((volatile unsigned long *)(0xE000ED2C))));
-  printf ("DFSR = %x\n", (*((volatile unsigned long *)(0xE000ED30))));
-  printf ("AFSR = %x\n", (*((volatile unsigned long *)(0xE000ED3C))));
-  while (1) { }; 
+  printf ("NVIC_FAULT_ADDR = %x\n", (*((volatile unsigned long *)(NVIC_FAULT_ADDR))));
+  printf ("NVIC_FAULT_STAT = %x\n", (*((volatile unsigned long *)(NVIC_FAULT_STAT))));
+  printf ("NVIC_HFAULT_STAT = %x\n", (*((volatile unsigned long *)(NVIC_HFAULT_STAT))));
+  printf ("NVIC_DEBUG_STAT = %x\n", (*((volatile unsigned long *)(NVIC_DEBUG_STAT))));
+  printf ("NVIC_MM_ADDR = %x\n", (*((volatile unsigned long *)(NVIC_MM_ADDR))));
+  while (1) { };
 }
 
 // Empty handler used as default.

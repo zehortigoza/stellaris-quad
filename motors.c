@@ -46,8 +46,8 @@ static void motor_state_set(unsigned char index, unsigned char up)
 void timer0_motors_interruption(void)
 {
     //clear interruption, must be the first thing.
-    //more info read documentarion
-    TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+    //more info read documentation
+    TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
     if (motor_state_get(motor_index))
     {
@@ -78,7 +78,7 @@ int motors_init(void)
 
     //config pin to output
     GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, GPIO_PIN_3);
-    //set pin to 0
+    //set pin to 3
     GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_3, 0);
 
     motors_tricks[0] = 0;
@@ -92,13 +92,20 @@ int motors_init(void)
     temp_motor_state[3] = 0;
 
     //configure to count down
-    TimerConfigure(TIMER0_BASE, TIMER_CFG_ONE_SHOT);
+    TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
     //enable interruption in timer
     TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    //load value to count down
+    //set counter to timer0
     TimerLoadSet(TIMER0_BASE, TIMER_A, TRICKS_2MS);
+    //enable interruption in timer0
+    IntEnable(INT_TIMER0A);
+    //enable interruption in timer
+    TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     //enable timer count
     TimerEnable(TIMER0_BASE, TIMER_A);
+
+    //highest priority
+    IntPrioritySet(INT_TIMER0A, 0);
 
     return 0;
 }

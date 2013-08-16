@@ -16,6 +16,7 @@
 #include <sys/times.h>
 #include <sys/unistd.h>
 #include "driverlib/uart.h"
+#include "main.h"
 
 #ifndef STDOUT_USART
 #define STDOUT_USART 1
@@ -41,6 +42,7 @@ extern int errno;
 char *__env[1] = { 0 };
 char **environ = __env;
 
+int _write(int file, char *ptr, int len);
 
 
 void _exit(int status) {
@@ -147,7 +149,7 @@ caddr_t _sbrk(int incr) {
 
   static char *heap_end;
   char *prev_heap_end;
-  extern char _estack;
+  //extern char _estack;
   extern char _sstack;
 
   if (heap_end == NULL) {
@@ -180,6 +182,7 @@ int _read(int file, char *ptr, int len) {
 
     switch (file) {
     case STDIN_FILENO:
+#if ENABLE_PRINTF
         for (n = 0; n < len; n++) {
             do 
             {
@@ -189,6 +192,10 @@ int _read(int file, char *ptr, int len) {
             *ptr++ = c;
             num++;
         }
+#else
+            errno = EBADF;
+            return -1;
+#endif
         break;
     default:
         errno = EBADF;
@@ -247,9 +254,11 @@ int _write(int file, char *ptr, int len) {
     switch (file) {
     case STDOUT_FILENO: /*stdout*/
     case STDERR_FILENO:
+#if ENABLE_PRINTF
         for (n = 0; n < len; n++) {
           UARTCharPut(UART0_BASE, ptr[n]);
         }
+#endif
         break;
     default:
         errno = EBADF;

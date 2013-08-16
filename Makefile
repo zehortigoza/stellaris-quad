@@ -72,16 +72,16 @@ ODFLAGS = -S
 # I can get them from the gcc frontend, using some options.
 # See gcc documentation
 LIB_GCC_PATH=${shell ${CC} ${CFLAGS} -print-libgcc-file-name}
-LIBC_PATH=${shell ${CC} ${CFLAGS} -print-file-name=libc.a}
-LIBM_PATH=${shell ${CC} ${CFLAGS} -print-file-name=libm.a}
-#LIBC_PATH=/home/cypher/stellaris/newlib/arm-none-eabi/lib/thumb2/libc.a
-#LIBM_PATH=/home/cypher/stellaris/newlib/arm-none-eabi/lib/thumb2/libm.a
+#LIBC_PATH=${shell ${CC} ${CFLAGS} -print-file-name=libc.a}
+#LIBM_PATH=${shell ${CC} ${CFLAGS} -print-file-name=libm.a}
+LIBC_PATH=~/sat/arm-none-eabi/lib/thumb/cortex-m4/libc.a
+LIBM_PATH=~/sat/arm-none-eabi/lib/thumb/cortex-m4/libm.a
 
 
 # Uploader tool path.
 # Set a relative or absolute path to the upload tool program.
 # I used this project: https://github.com/utzig/lm4tools
-FLASHER=~/dev/stellaris/lm4flash/lm4flash
+FLASHER=~/dev/stellaris/lm4tools/lm4flash/lm4flash
 # Flags for the uploader program.
 FLASHER_FLAGS=
 
