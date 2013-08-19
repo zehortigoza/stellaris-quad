@@ -1,6 +1,7 @@
 #include "main.h"
 #include "protocol.h"
 #include "radio.h"
+#include "mpu6050.h"
 
 static protocol_msg_callback protocol_msg_func = NULL;
 

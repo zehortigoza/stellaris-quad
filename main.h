@@ -25,6 +25,7 @@
 #include "driverlib/fpu.h"
 #include "driverlib/uart.h"
 #include "driverlib/timer.h"
+#include "driverlib/i2c.h"
 
 #define ENABLE_PRINTF 1
 

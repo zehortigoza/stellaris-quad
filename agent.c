@@ -152,7 +152,7 @@ void agent_init(void)
     z_value = 0;
     motors_init();
     procotol_init(_msg_cb);
-    //mpu6050_init();
+    mpu6050_init();
 
     _timer1_config();
 }

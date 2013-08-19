@@ -53,6 +53,8 @@ void hardfault_handler(unsigned int * hardfault_args) ;
 extern void uart1_radio_interruption(void);
 extern void timer0_motors_interruption(void);
 extern void timer1_500ms_interruption(void);
+extern void i2c1_mpu6050_interruption(void);
+extern void gpioa_mpu6050_interruption(void);
 
 //-----------------------------------------------------------------------------
 //                 Variables declarations
@@ -98,7 +100,7 @@ void(* myvectors[])(void) = {
     empty_def_handler,    // PendSV             14
     empty_def_handler,    // SysTick              15
     // Peripherial interrupts start here.
-  empty_def_handler,    // GPIO Port A            16
+  gpioa_mpu6050_interruption,    // GPIO Port A            16
   empty_def_handler,    // GPIO Port B            17
   empty_def_handler,    // GPIO Port C            18
   empty_def_handler,    // GPIO Port D            19
@@ -135,7 +137,7 @@ void(* myvectors[])(void) = {
   empty_def_handler,    // SSI 1              50
   empty_def_handler,    // 16/32 bit timer 3 A        51
   empty_def_handler,    // 16/32 bit timer 3 B        52
-  empty_def_handler,    // I2C 1              53
+  i2c1_mpu6050_interruption,    // I2C 1              53
   0,            // Reserved             54
   empty_def_handler,    // CAN 0              55
   0,            // Reserved             56
