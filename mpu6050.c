@@ -1,10 +1,12 @@
 #include "main.h"
 #include "i2c.h"
-#include <math.h>
+
+#define M_PI 3.14159265358979323846
 
 #define MPU6050_ADDR 0x0068//ADO = low
 
-#define SAMPLES_TO_CALIBRATE 10
+#define SAMPLES_TO_CALIBRATE 400//2s
+static short _calibrate_gyro = 0;
 
 #define ACCEL_SCALE 8192.0
 #define GYRO_SCALE 65.5
@@ -44,7 +46,7 @@ typedef union _mpu6050_raw
       int16_t x_accel;
       int16_t y_accel;
       int16_t z_accel;
-      int16_t temperature;//indicate that is first run of calibrate
+      int16_t temperature;
       int16_t x_gyro;
       int16_t y_gyro;
       int16_t z_gyro;
@@ -116,6 +118,8 @@ int mpu6050_init(void)
     //trigger interruption only in rising edge
     GPIOIntTypeSet(GPIO_PORTA_BASE, GPIO_PIN_5, GPIO_RISING_EDGE);
 
+    _calibrate_gyro = SAMPLES_TO_CALIBRATE;
+
     return 0;
 }
 
@@ -139,6 +143,32 @@ static void _raw_swap(mpu6050_raw *raw)
     _swap(&raw->reg.z_gyro_h, &raw->reg.z_gyro_l);
 }
 
+static void _offset_remove(mpu6050_raw *raw)
+{
+    static int16_t gx_offset = 0, gy_offset = 0, gz_offset = 0;
+
+    if (_calibrate_gyro)
+    {
+        if (!gx_offset && !gy_offset && !gz_offset)
+        {
+            gx_offset = raw->value.x_gyro;
+            gy_offset = raw->value.y_gyro;
+            gz_offset = raw->value.z_gyro;
+        }
+        else
+        {
+            gx_offset = (raw->value.x_gyro + gx_offset) / 2;
+            gy_offset = (raw->value.y_gyro + gy_offset) / 2;
+            gz_offset = (raw->value.z_gyro + gz_offset) / 2;
+        }
+        _calibrate_gyro--;
+    }
+
+    raw->value.x_gyro -= gx_offset;
+    raw->value.y_gyro -= gy_offset;
+    raw->value.z_gyro -= gz_offset;
+}
+
 #define SCALE(val, val2) (((float)val) / val2)
 
 static void _scale_calc(mpu6050_raw *raw, float *gx, float *gy, float *gz, float *ax, float *ay, float *az)
@@ -159,6 +189,11 @@ static void _raw_cb(unsigned char *data)
 
     memcpy(&raw, data, sizeof(raw));
     _raw_swap(&raw);
+    _offset_remove(&raw);
+
+    //while calibrating, do not start update dcm
+    if (_calibrate_gyro)
+        return;
     _scale_calc(&raw, &gx, &gy, &gz, &ax, &ay, &az);
 
     //TODO convert to yaw, roll and pitch
