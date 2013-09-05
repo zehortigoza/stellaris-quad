@@ -3,7 +3,7 @@
 #include "protocol.h"
 #include "motors.h"
 
-static unsigned short z_value = 0;
+static unsigned short throttle = 0;
 
 static void _timer1_reset(void);
 
@@ -38,15 +38,15 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
             {
                 case AXIS_Z:
                 {
-                    z_value = num;
-                    motors_velocity_set(z_value, z_value, z_value, z_value);
+                    throttle = num;
+                    motors_velocity_set(throttle, throttle, throttle, throttle);
                     break;
                 }
                 case AXIS_X:
                 {
                     //num [-3-3]
                     if (!num)
-                        motors_velocity_set(z_value, z_value, z_value, z_value);
+                        motors_velocity_set(throttle, throttle, throttle, throttle);
                     else if (num < 0)//left
                     {
                         //TODO calc
@@ -66,7 +66,7 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
                 {
                     //num [-3-3]
                     if (!num)
-                        motors_velocity_set(z_value, z_value, z_value, z_value);
+                        motors_velocity_set(throttle, throttle, throttle, throttle);
                     else if (num > 0)//front
                     {
                         //slow rotations on both front motors
@@ -82,7 +82,7 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
                 case AXIS_ROTATE:
                 {
                     if (!num)
-                        motors_velocity_set(z_value, z_value, z_value, z_value);
+                        motors_velocity_set(throttle, throttle, throttle, throttle);
                     else if (num > 0)
                     {
                         //fast rotations on fl and br
@@ -155,7 +155,7 @@ _sensor_cb(float roll, float pitch, float yaw)
 
 void agent_init(void)
 {
-    z_value = 0;
+    throttle = 0;
     motors_init();
     procotol_init(_msg_cb);
     mpu6050_init(_sensor_cb);
@@ -170,7 +170,7 @@ void timer1_500ms_interruption(void)
     TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
 
     //remove movements
-    motors_velocity_set(z_value, z_value, z_value, z_value);
+    motors_velocity_set(throttle, throttle, throttle, throttle);
 
     //value do count down
     TimerLoadSet(TIMER1_BASE, TIMER_A, SysCtlClockGet() / 2);
