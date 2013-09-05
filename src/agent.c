@@ -3,8 +3,21 @@
 #include "protocol.h"
 #include "motors.h"
 #include "mpu6050.h"
+#include "pid.h"
 
+#define MPU_6050_FREQUENCY 500
+
+//data received from controller
 static unsigned short throttle = 0;
+static short receiver_pitch = 0;
+static short receiver_roll = 0;
+static short receiver_yaw = 0;
+#define ROLL_SCALE 10
+#define PITCH_SCALE 10
+#define YAW_SCALE 10
+
+static pid_data pid_roll;
+static pid_data pid_pitch;
 
 /*
  * bit0 = requesting orientation
@@ -14,6 +27,19 @@ static unsigned char flags = 0;
 static unsigned char orientation_delay = 0;
 
 static void _timer1_reset(void);
+
+#define YAW_DIRECTION 1//or -1 to other side
+
+//to quad X mode
+static void motor_command_apply(short command_roll, short command_pitch, short command_yaw)
+{
+    unsigned short fl, fr, bl, br;
+    fl  = throttle - command_pitch + command_roll - (YAW_DIRECTION * command_yaw);
+    fr = throttle - command_pitch - command_roll + (YAW_DIRECTION * command_yaw);
+    bl = throttle + command_pitch + command_roll + (YAW_DIRECTION * command_yaw);
+    br = throttle + command_pitch - command_roll - (YAW_DIRECTION * command_yaw);
+    motors_velocity_set(fl, fr, bl, br);
+}
 
 /*
  FL\---00---/FR
@@ -47,60 +73,37 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
                 case AXIS_Z:
                 {
                     throttle = num;
+                    receiver_pitch = receiver_roll = receiver_yaw = 0;
                     motors_velocity_set(throttle, throttle, throttle, throttle);
                     break;
                 }
-                case AXIS_X:
+                case AXIS_X://roll
                 {
-                    //num [-3-3]
+                    receiver_pitch = receiver_yaw = 0;
+                    //num [-3,3]
                     if (!num)
-                        motors_velocity_set(throttle, throttle, throttle, throttle);
-                    else if (num < 0)//left
-                    {
-                        //TODO calc
-                        //slow rotations on both left motors
-                        //fast rotations on both right motors
-                    } else//right
-                    {
-                        //TODO calc
-                        //fast rotations on both left motors
-                        //slow rotations on both right motors
-                    }
-                    //calc all for values basead variables but dont set
-                    //only send to motors
+                        receiver_roll = 0;
+                    else
+                        receiver_roll = ROLL_SCALE * num;
                     break;
                 }
-                case AXIS_Y:
+                case AXIS_Y://pitch
                 {
-                    //num [-3-3]
+                    //num [-3,3]
+                    receiver_roll = receiver_yaw = 0;
                     if (!num)
-                        motors_velocity_set(throttle, throttle, throttle, throttle);
-                    else if (num > 0)//front
-                    {
-                        //slow rotations on both front motors
-                        //fast rotations on both back motors
-                    }
+                        receiver_pitch = 0;
                     else
-                    {
-                        //fast rotations on both front motors
-                        //slow rotations on both back motors
-                    }
+                        receiver_pitch = PITCH_SCALE * num;
                     break;
                 }
-                case AXIS_ROTATE:
+                case AXIS_ROTATE://yaw
                 {
+                    receiver_pitch = receiver_roll = 0;
                     if (!num)
-                        motors_velocity_set(throttle, throttle, throttle, throttle);
-                    else if (num > 0)
-                    {
-                        //fast rotations on fl and br
-                        //slow rotations on fr and bl
-                    }
+                        receiver_yaw = 0;
                     else
-                    {
-                        //slow rotations on fl and br
-                        //fast rotations on fr and bl
-                    }
+                        receiver_yaw = YAW_SCALE * num;
                     break;
                 }
             }
@@ -167,9 +170,16 @@ static void _timer1_reset(void)
 static void
 _sensor_cb(float roll, float pitch, float yaw)
 {
+    short command_roll, command_pitch;
+
+    command_roll = pid_update(&pid_roll, receiver_roll, roll);
+    command_pitch = pid_update(&pid_pitch, receiver_pitch, pitch);
+
+    motor_command_apply(command_roll, command_pitch, 0);
+
     if (flags & REQUESTING_ORIENTATION)
     {
-        if (orientation_delay == 125)//each 0.25 second
+        if (orientation_delay == (MPU_6050_FREQUENCY/4))//each 0.25 second
         {
             protocol_msg_send(ORIENTATION, 0, roll, pitch, yaw);
             orientation_delay = 0;
@@ -186,6 +196,9 @@ void agent_init(void)
     procotol_init(_msg_cb);
     mpu6050_init(_sensor_cb);
 
+    pid_init(&pid_roll, 50, 2, 0, 500, (1.0/MPU_6050_FREQUENCY));
+    pid_init(&pid_pitch, 50, 2, 0, 500, (1.0/MPU_6050_FREQUENCY));
+
     _timer1_config();
 }
 
@@ -196,7 +209,7 @@ void timer1_500ms_interruption(void)
     TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
 
     //remove movements
-    motors_velocity_set(throttle, throttle, throttle, throttle);
+    receiver_pitch = receiver_roll = receiver_yaw = 0;
 
     //value do count down
     TimerLoadSet(TIMER1_BASE, TIMER_A, SysCtlClockGet() / 2);

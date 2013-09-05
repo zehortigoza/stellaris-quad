@@ -14,6 +14,7 @@ SOURCES    += motors.c
 SOURCES    += mpu6050.c
 SOURCES    += protocol.c
 SOURCES    += radio.c
+SOURCES    += pid.c
 
 
 #SOURCES  = $(wildcard src/*.c)
