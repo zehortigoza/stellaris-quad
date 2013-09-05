@@ -32,7 +32,7 @@ static void _radio_cb(char *text)
     {
         case MOVE:
         {
-            int num;//only request
+            unsigned int num;//only request
             Protocol_Axis axis;
 
             pch = strtok(NULL, ";");

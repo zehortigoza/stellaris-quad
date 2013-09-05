@@ -3,7 +3,7 @@
 #include "protocol.h"
 #include "motors.h"
 
-static unsigned char z_value = 0;
+static unsigned short z_value = 0;
 
 static void _timer1_reset(void);
 
@@ -29,10 +29,10 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
         case MOVE:
         {
             Protocol_Axis axis;
-            unsigned char num;
+            unsigned short num;
 
             axis = va_arg(ap, int);
-            num = va_arg(ap, int);
+            num = va_arg(ap, unsigned int);
 
             switch (axis)
             {

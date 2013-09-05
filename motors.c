@@ -2,13 +2,11 @@
 
 static unsigned char motor_index = 0;
 
-#define TRICKS_1MS (SysCtlClockGet() / 1000)
+static unsigned int TRICKS_1MICRO;
 
-//same as (SysCtlClockGet() / 1000) * 2
-#define TRICKS_2MS (SysCtlClockGet() / 500)
+#define TRICKS_2MS (TRICKS_1MICRO * 2000)
 
-//same as (SysCtlClockGet() / 1000) * 4
-#define TRICKS_4MS (SysCtlClockGet() / 250)
+#define TRICKS_4MS (TRICKS_1MICRO * 4000)
 
 //index 0 = front right, 1 = front left, 2 = back right, 3 = back left
 static unsigned int motors_tricks[4];
@@ -73,6 +71,8 @@ void timer0_motors_interruption(void)
 
 int motors_init(void)
 {
+    TRICKS_1MICRO = SysCtlClockGet() / 1000000;
+
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
 
@@ -110,41 +110,43 @@ int motors_init(void)
     return 0;
 }
 
-static unsigned int _tricks_calc(unsigned char value)
+#define MIN_VALUE 1000
+#define MAX_VALUE 2000
+
+static unsigned int
+_velocity_set(unsigned short value)
 {
-    if (!value)
-        return 0;
-    return ((TRICKS_1MS * value) / 255) + TRICKS_1MS;
+    if (value > MAX_VALUE)
+        value = MAX_VALUE;
+    else if (value <  MIN_VALUE && value != 0)
+        value = MIN_VALUE;
+    return TRICKS_1MICRO * value;
 }
 
 /*
- * 255 = 2ms up
- * 1 = 1ms up
- * 0 = motor turn off
+ * value in micro seconds
+ * min rotation = 1000
+ * max rotation = 2000
+ * motor turn off = 0
  */
-void motors_velocity_set(unsigned char fr, unsigned char fl, unsigned char br, unsigned char bl)
+void motors_velocity_set(unsigned short fr, unsigned short fl, unsigned short br, unsigned short bl)
 {
-    motors_tricks[0] = _tricks_calc(fr);
-    motors_tricks[1] = _tricks_calc(fl);
-    motors_tricks[2] = _tricks_calc(br);
-    motors_tricks[3] = _tricks_calc(bl);
+    motors_tricks[0] = _velocity_set(fr);
+    motors_tricks[1] = _velocity_set(fl);
+    motors_tricks[2] = _velocity_set(br);
+    motors_tricks[3] = _velocity_set(bl);
 }
 
-static unsigned char _power_calc(unsigned short count)
-{
-    if (!count)
-        return 0;
-    return ((count - TRICKS_1MS) * 255) / TRICKS_1MS;
-}
+#define MICROS_CALC(tricks) tricks / TRICKS_1MICRO
 
 void motors_velocity_get(unsigned char *fr, unsigned char *fl, unsigned char *br, unsigned char *bl)
 {
     if (fr)
-        *fr = _power_calc(motors_tricks[0]);
+        *fr = MICROS_CALC(motors_tricks[0]);
     if (fl)
-        *fl = _power_calc(motors_tricks[1]);
+        *fl = MICROS_CALC(motors_tricks[1]);
     if (br)
-        *br = _power_calc(motors_tricks[2]);
+        *br = MICROS_CALC(motors_tricks[2]);
     if (bl)
-        *bl = _power_calc(motors_tricks[3]);
+        *bl = MICROS_CALC(motors_tricks[3]);
 }
