@@ -147,12 +147,18 @@ static void _timer1_reset(void)
     _timer1_config();
 }
 
+//called each 5ms
+static void
+_sensor_cb(float roll, float pitch, float yaw)
+{
+}
+
 void agent_init(void)
 {
     z_value = 0;
     motors_init();
     procotol_init(_msg_cb);
-    mpu6050_init();
+    mpu6050_init(_sensor_cb);
 
     _timer1_config();
 }

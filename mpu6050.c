@@ -1,5 +1,7 @@
 #include "main.h"
+#include "mpu6050.h"
 #include "i2c.h"
+#include "dcm_filter.h"
 
 #define M_PI 3.14159265358979323846
 
@@ -53,9 +55,14 @@ typedef union _mpu6050_raw
   } value;
 } mpu6050_raw;
 
+static sensor_data_ready_callback sensor_cb;
+
 static void _int_enable_cb(void)
 {
-    //all registers configures
+    //all registers configured
+
+    //200hz as set in reg REG_SMPRT_DIV
+    dcm_init(200);
 }
 
 static void _accel_config_cb(void)
@@ -102,8 +109,10 @@ static void _who_am_i_cb(unsigned char *data)
     i2c_reg_uchar_write(REG_PWR_MGMT_1, 0, _pw_mgmt_cb);
 }
 
-int mpu6050_init(void)
+int mpu6050_init(sensor_data_ready_callback func)
 {
+    sensor_cb = func;
+
     i2c_bus_init(MPU6050_ADDR);
     i2c_reg_read(REG_WHO_AM_I, 1, _who_am_i_cb);
 
@@ -186,6 +195,7 @@ static void _raw_cb(unsigned char *data)
 {
     mpu6050_raw raw;
     float gx, gy, gz, ax, ay, az;
+    float roll, pitch, yaw;
 
     memcpy(&raw, data, sizeof(raw));
     _raw_swap(&raw);
@@ -196,7 +206,14 @@ static void _raw_cb(unsigned char *data)
         return;
     _scale_calc(&raw, &gx, &gy, &gz, &ax, &ay, &az);
 
-    //TODO convert to yaw, roll and pitch
+    //degrees/second to rads/second
+    gx = gx * (M_PI / 180.0);
+    gy = gy * (M_PI / 180.0);
+    gz = gz * (M_PI / 180.0);
+
+    dcm_update(gx, gy, gz, ax, ay, az, &roll, &pitch, &yaw);
+
+    sensor_cb(roll, pitch, yaw);
 }
 
 static void _status_cb(unsigned char *data)
