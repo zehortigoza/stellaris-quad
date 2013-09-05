@@ -8,16 +8,16 @@ static unsigned short z_value = 0;
 static void _timer1_reset(void);
 
 /*
- BL\        /FL
+ FL\---00---/FR
     \      /
-     \    /         x
+     \    /         y
       \  /          ^
        \/           |
        /\           |
-      /  \    y<-----
+      /  \    x<-----
      /    \
     /      \
- BR/        \FR
+ BL/        \BR
 */
 static void _msg_cb(Protocol_Msg_Type type, char request, ...)
 {

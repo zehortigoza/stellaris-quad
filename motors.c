@@ -129,24 +129,24 @@ _velocity_set(unsigned short value)
  * max rotation = 2000
  * motor turn off = 0
  */
-void motors_velocity_set(unsigned short fr, unsigned short fl, unsigned short br, unsigned short bl)
+void motors_velocity_set(unsigned short fl, unsigned short fr, unsigned short bl, unsigned short br)
 {
-    motors_tricks[0] = _velocity_set(fr);
-    motors_tricks[1] = _velocity_set(fl);
-    motors_tricks[2] = _velocity_set(br);
-    motors_tricks[3] = _velocity_set(bl);
+    motors_tricks[0] = _velocity_set(fl);
+    motors_tricks[1] = _velocity_set(fr);
+    motors_tricks[2] = _velocity_set(bl);
+    motors_tricks[3] = _velocity_set(br);
 }
 
 #define MICROS_CALC(tricks) tricks / TRICKS_1MICRO
 
-void motors_velocity_get(unsigned char *fr, unsigned char *fl, unsigned char *br, unsigned char *bl)
+void motors_velocity_get(unsigned char *fl, unsigned char *fr, unsigned char *bl, unsigned char *br)
 {
-    if (fr)
-        *fr = MICROS_CALC(motors_tricks[0]);
     if (fl)
-        *fl = MICROS_CALC(motors_tricks[1]);
-    if (br)
-        *br = MICROS_CALC(motors_tricks[2]);
+        *fl = MICROS_CALC(motors_tricks[0]);
+    if (fr)
+        *fr = MICROS_CALC(motors_tricks[1]);
     if (bl)
-        *bl = MICROS_CALC(motors_tricks[3]);
+        *bl = MICROS_CALC(motors_tricks[2]);
+    if (br)
+        *br = MICROS_CALC(motors_tricks[3]);
 }
