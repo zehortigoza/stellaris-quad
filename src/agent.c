@@ -2,6 +2,7 @@
 #include "agent.h"
 #include "protocol.h"
 #include "motors.h"
+#include "mpu6050.h"
 
 static unsigned short throttle = 0;
 
