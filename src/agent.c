@@ -6,6 +6,13 @@
 
 static unsigned short throttle = 0;
 
+/*
+ * bit0 = requesting orientation
+ */
+static unsigned char flags = 0;
+#define REQUESTING_ORIENTATION GPIO_PIN_0
+static unsigned char orientation_delay = 0;
+
 static void _timer1_reset(void);
 
 /*
@@ -118,6 +125,15 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
             //TODO send at comand to xbee to get radio level
             break;
         }
+        case ORIENTATION:
+        {
+            unsigned char enable = va_arg(ap, int);
+            if (enable)
+                flags |= REQUESTING_ORIENTATION;
+            else
+                flags &= ~REQUESTING_ORIENTATION;
+            break;
+        }
         default:
         {
             break;
@@ -152,6 +168,16 @@ static void _timer1_reset(void)
 static void
 _sensor_cb(float roll, float pitch, float yaw)
 {
+    if (flags & REQUESTING_ORIENTATION)
+    {
+        if (orientation_delay == 50)
+        {
+            protocol_msg_send(ORIENTATION, 0, roll, pitch, yaw);
+            orientation_delay = 0;
+        }
+        else
+            orientation_delay++;
+    }
 }
 
 void agent_init(void)

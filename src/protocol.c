@@ -67,6 +67,17 @@ static void _radio_cb(char *text)
             protocol_msg_func(type, request);
             break;
         }
+        case ORIENTATION:
+        {
+            unsigned char enable;
+
+            pch = strtok(NULL, ";");
+            if (!pch || pch[0] == '$')
+                return;
+            enable = atoi(pch);
+            protocol_msg_func(type, request, enable);
+            break;
+        }
         default:
         {
             break;
@@ -128,6 +139,15 @@ unsigned char protocol_msg_send(Protocol_Msg_Type type, char request, ...)
         {
             const char *txt = va_arg(ap, char*);
             sprintf(tx_buffer, "^;d;1;%s;$\n", txt);
+            break;
+        }
+        case ORIENTATION:
+        {
+            float roll, pitch, yaw;
+            roll = va_arg(ap, double);
+            pitch = va_arg(ap, double);
+            yaw = va_arg(ap, double);
+            sprintf(tx_buffer, "^;%c;0;%.3f;%.3f;%.3f;$\n", type, roll, pitch, yaw);
             break;
         }
         default:
