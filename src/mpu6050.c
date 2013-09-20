@@ -105,8 +105,8 @@ static void _who_am_i_cb(unsigned char *data)
     if (data[0] != MPU6050_ADDR)
         return;
     i2c_bus_init(MPU6050_ADDR);
-    //get out of sleep
-    i2c_reg_uchar_write(REG_PWR_MGMT_1, 0, _pw_mgmt_cb);
+    //get out of sleep and clock from gyro z
+    i2c_reg_uchar_write(REG_PWR_MGMT_1, 3, _pw_mgmt_cb);
 }
 
 int mpu6050_init(sensor_data_ready_callback func)
