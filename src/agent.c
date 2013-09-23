@@ -164,13 +164,12 @@ static void _timer1_reset(void)
     _timer1_config();
 }
 
-//called each 5ms
 static void
 _sensor_cb(float roll, float pitch, float yaw)
 {
     if (flags & REQUESTING_ORIENTATION)
     {
-        if (orientation_delay == 50)
+        if (orientation_delay == 125)//each 0.25 second
         {
             protocol_msg_send(ORIENTATION, 0, roll, pitch, yaw);
             orientation_delay = 0;

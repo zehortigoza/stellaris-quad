@@ -1,13 +1,13 @@
 #include "main.h"
 #include "mpu6050.h"
 #include "i2c.h"
-#include "dcm_filter.h"
-
-#define M_PI 3.14159265358979323846
+//#include "dcm_filter.h"
+#include "MadgwickAHRS.h"
+#include <math.h>
 
 #define MPU6050_ADDR 0x0068//ADO = low
 
-#define SAMPLES_TO_CALIBRATE 400//2s
+#define SAMPLES_TO_CALIBRATE 500*5//4s
 static short _calibrate_gyro = 0;
 
 #define ACCEL_SCALE 8192.0
@@ -60,9 +60,6 @@ static sensor_data_ready_callback sensor_cb;
 static void _int_enable_cb(void)
 {
     //all registers configured
-
-    //200hz as set in reg REG_SMPRT_DIV
-    dcm_init(200);
 }
 
 static void _accel_config_cb(void)
@@ -89,8 +86,8 @@ static void _sampler_divider_cb(void)
 static void _config_cb(void)
 {
     i2c_bus_init(MPU6050_ADDR);
-    //divider = 4+1 = 5; 1k/5=200hz
-    i2c_reg_uchar_write(REG_SMPRT_DIV, 4, _sampler_divider_cb);
+    //divider = 1+1 = 2; 1k/2=500hz
+    i2c_reg_uchar_write(REG_SMPRT_DIV, 1, _sampler_divider_cb);
 }
 
 static void _pw_mgmt_cb(void)
@@ -182,45 +179,66 @@ static void _offset_remove(mpu6050_raw *raw)
 
 static void _scale_calc(mpu6050_raw *raw, float *gx, float *gy, float *gz, float *ax, float *ay, float *az)
 {
-    *ax = SCALE(raw->value.x_accel, ACCEL_SCALE);
-    *ay = SCALE(raw->value.y_accel, ACCEL_SCALE);
-    *az = SCALE(raw->value.z_accel, ACCEL_SCALE);
+    //dont need scale accel, fusion algorithm work with raw values
+    *ax = raw->value.x_accel;
+    *ay = raw->value.y_accel;
+    *az = raw->value.z_accel;
 
     *gx = SCALE(raw->value.x_gyro, GYRO_SCALE);
     *gy = SCALE(raw->value.y_gyro, GYRO_SCALE);
     *gz = SCALE(raw->value.z_gyro, GYRO_SCALE);
 }
 
+static float _deg2rad(float deg)
+{
+    //0.0174532925 = M_PI / 180.0
+    return deg * 0.0174532925;
+}
+
+static float _rad2deg(float rad)
+{
+    return rad * 57.2957795;
+}
+
+static void _euler_angles_calc(float *roll, float *pitch, float *yaw, float q0, float q1, float q2, float q3)
+{
+    //FIXME: inverting roll and pitch
+    //check if this is right before start flight
+    *pitch = atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2));
+    *roll = asin(2 * (q0 * q2 - q1 * q3));
+    *yaw = atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3));
+
+    *roll = _rad2deg(*roll);
+    *pitch = _rad2deg(*pitch) * -1;
+    *yaw = _rad2deg(*yaw);
+}
+
 static void _raw_cb(unsigned char *data)
 {
     mpu6050_raw raw;
     float gx, gy, gz, ax, ay, az;
-    float roll, pitch, yaw;
+    float roll = 0, pitch = 0, yaw = 0;
 
     memcpy(&raw, data, sizeof(raw));
     _raw_swap(&raw);
     _offset_remove(&raw);
 
-    //while calibrating, do not start update dcm
+    //while calibrating, do not start update fusion algorithm
     if (_calibrate_gyro)
         return;
     _scale_calc(&raw, &gx, &gy, &gz, &ax, &ay, &az);
 
-    //degrees/second to rads/second
-    gx = gx * (M_PI / 180.0);
-    gy = gy * (M_PI / 180.0);
-    gz = gz * (M_PI / 180.0);
+    gx = _deg2rad(gx);
+    gy = _deg2rad(gy);
+    gz = _deg2rad(gz);
 
-    dcm_update(gx, gy, gz, ax, ay, az, &roll, &pitch, &yaw);
+    MadgwickAHRSupdateIMU(gx, gy, gz, ax, ay, az, &roll, &pitch, &yaw, _euler_angles_calc);
 
     sensor_cb(roll, pitch, yaw);
 }
 
 static void _status_cb(unsigned char *data)
 {
-    if ((data[0] & GPIO_PIN_6) || (data[0] & GPIO_PIN_4) || (data[0] & GPIO_PIN_3))
-        printf("another status interruption");
-
     if (data[0] & GPIO_PIN_0)
     {
         i2c_bus_init(MPU6050_ADDR);
