@@ -184,10 +184,6 @@ __attribute__ ((section(".isr_vector")))void (* const g_pfnVectors[])(void) =
 
 void HardwareInit()
 {
-    SetupFPU();
-    SetupClock (CLK80);
-    SetupStdio();
-
     main();
 }
 
