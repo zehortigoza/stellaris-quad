@@ -4,6 +4,9 @@
 #include "motors.h"
 #include "mpu6050.h"
 #include "pid.h"
+#include "config.h"
+
+static config configuration;
 
 #define MPU_6050_FREQUENCY 500
 
@@ -137,6 +140,23 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
                 flags &= ~REQUESTING_ORIENTATION;
             break;
         }
+        case CONFIGS:
+        {
+            protocol_msg_send(type, 0, configuration.p_gaing, configuration.i_gaing);
+            break;
+        }
+        case CONFIGS_WRITE:
+        {
+            float p, i;
+
+            p = va_arg(ap, double);
+            i = va_arg(ap, double);
+            configuration.p_gaing = p;
+            configuration.i_gaing = i;
+            config_write(&configuration);
+            protocol_msg_send(type, 0);
+            break;
+        }
         default:
         {
             break;
@@ -191,13 +211,16 @@ _sensor_cb(float roll, float pitch, float yaw)
 
 void agent_init(void)
 {
+    config_init();
+    config_read(&configuration);
+
     throttle = 0;
     motors_init();
     procotol_init(_msg_cb);
     mpu6050_init(_sensor_cb);
 
-    pid_init(&pid_roll, 50, 2, 0, 500, (1.0/MPU_6050_FREQUENCY));
-    pid_init(&pid_pitch, 50, 2, 0, 500, (1.0/MPU_6050_FREQUENCY));
+    pid_init(&pid_roll, configuration.p_gaing, configuration.i_gaing, 0, 500, (1.0/MPU_6050_FREQUENCY));
+    pid_init(&pid_pitch, configuration.p_gaing, configuration.i_gaing, 0, 500, (1.0/MPU_6050_FREQUENCY));
 
     _timer1_config();
 }

@@ -11,7 +11,9 @@ typedef enum
   ACCELEROMETER = 'a',
   CALIBRATE = 'c',
   DEBUG = 'd',
-  ORIENTATION = 'o'
+  ORIENTATION = 'o',
+  CONFIGS = 'f',
+  CONFIGS_WRITE = 'w'
 } Protocol_Msg_Type;
 
 typedef enum

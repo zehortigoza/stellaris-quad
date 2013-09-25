@@ -26,6 +26,7 @@
 #include "driverlib/uart.h"
 #include "driverlib/timer.h"
 #include "driverlib/i2c.h"
+#include "driverlib/flash.h"
 
 #define ENABLE_PRINTF 1
 

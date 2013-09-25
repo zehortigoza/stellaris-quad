@@ -63,6 +63,7 @@ static void _radio_cb(char *text)
         case CALIBRATE:
         case GYRO:
         case ACCELEROMETER:
+        case CONFIGS:
         {
             protocol_msg_func(type, request);
             break;
@@ -76,6 +77,23 @@ static void _radio_cb(char *text)
                 return;
             enable = atoi(pch);
             protocol_msg_func(type, request, enable);
+            break;
+        }
+        case CONFIGS_WRITE:
+        {
+            float p, i;
+
+            pch = strtok(NULL, ";");
+            if (!pch || pch[0] == '$')
+                return;
+            p = atof(pch);
+
+            pch = strtok(NULL, ";");
+            if (!pch || pch[0] == '$')
+                return;
+            i = atof(pch);
+
+            protocol_msg_func(type, request, p, i);
             break;
         }
         default:
@@ -130,6 +148,7 @@ unsigned char protocol_msg_send(Protocol_Msg_Type type, char request, ...)
         }
         case CALIBRATE:
         case MOVE:
+        case CONFIGS_WRITE:
         {
             //only reply
             sprintf(tx_buffer, "^;%c;0;$\n", type);
@@ -148,6 +167,14 @@ unsigned char protocol_msg_send(Protocol_Msg_Type type, char request, ...)
             pitch = va_arg(ap, double);
             yaw = va_arg(ap, double);
             sprintf(tx_buffer, "^;%c;0;%.3f;%.3f;%.3f;$\n", type, roll, pitch, yaw);
+            break;
+        }
+        case CONFIGS:
+        {
+            float p, i;
+            p = va_arg(ap, double);
+            i = va_arg(ap, double);
+            sprintf(tx_buffer, "^;%c;0;%.3f;%.3f;$\n", type, p, i);
             break;
         }
         default:
