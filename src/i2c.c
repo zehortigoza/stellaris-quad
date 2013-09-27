@@ -88,7 +88,7 @@ void i2c1_mpu6050_interruption(void)
     {
         if (state & WAITING_FINISH)
         {
-            state = 0;
+            state = BUS_INITIALIZED;
             data_write_func();
         }
         else if (data_size == 1)
@@ -116,7 +116,7 @@ void i2c1_mpu6050_interruption(void)
         }
         else if (state & WAITING_FINISH)
         {
-            state = 0;
+            state = BUS_INITIALIZED;
             data_read_func(buffer);
         }
         else

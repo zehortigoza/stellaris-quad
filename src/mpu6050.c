@@ -64,35 +64,30 @@ static void _int_enable_cb(void)
 
 static void _accel_config_cb(void)
 {
-    i2c_bus_init(MPU6050_ADDR);
     //enable data ready interruption
     i2c_reg_uchar_write(REG_INT_ENABLE, GPIO_PIN_0, _int_enable_cb);
 }
 
 static void _gyro_config_cb(void)
 {
-    i2c_bus_init(MPU6050_ADDR);
     //acell Full Scale Range = +-4g
     i2c_reg_uchar_write(REG_ACCEL_CONFIG, GPIO_PIN_3, _accel_config_cb);
 }
 
 static void _sampler_divider_cb(void)
 {
-    i2c_bus_init(MPU6050_ADDR);
     //gyro Full Scale Range = +-500 º/s
     i2c_reg_uchar_write(REG_GYRO_CONFIG, GPIO_PIN_3, _gyro_config_cb);
 }
 
 static void _config_cb(void)
 {
-    i2c_bus_init(MPU6050_ADDR);
     //divider = 1+1 = 2; 1k/2=500hz
     i2c_reg_uchar_write(REG_SMPRT_DIV, 1, _sampler_divider_cb);
 }
 
 static void _pw_mgmt_cb(void)
 {
-    i2c_bus_init(MPU6050_ADDR);
     //set Gyroscope Output Rate = 1k and config the low pass filter.
     i2c_reg_uchar_write(REG_CONFIG, GPIO_PIN_0, _config_cb);
 }
@@ -101,7 +96,6 @@ static void _who_am_i_cb(unsigned char *data)
 {
     if (data[0] != MPU6050_ADDR)
         return;
-    i2c_bus_init(MPU6050_ADDR);
     //get out of sleep and clock from gyro z
     i2c_reg_uchar_write(REG_PWR_MGMT_1, 3, _pw_mgmt_cb);
 }
@@ -241,7 +235,6 @@ static void _status_cb(unsigned char *data)
 {
     if (data[0] & GPIO_PIN_0)
     {
-        i2c_bus_init(MPU6050_ADDR);
         i2c_reg_read(REG_ACCEL_XOUT_H, sizeof(mpu6050_raw), _raw_cb);
     }
 }
@@ -255,6 +248,5 @@ void gpioa_mpu6050_interruption(void)
 
     GPIOPinIntClear(GPIO_PORTA_BASE, GPIO_PIN_5);
 
-    i2c_bus_init(MPU6050_ADDR);
     i2c_reg_read(REG_INT_STATUS, 1, _status_cb);
 }
