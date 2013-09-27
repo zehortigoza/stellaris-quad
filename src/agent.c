@@ -27,7 +27,6 @@ static pid_data pid_pitch;
  */
 static unsigned char flags = 0;
 #define REQUESTING_ORIENTATION GPIO_PIN_0
-static unsigned char orientation_delay = 0;
 
 static void _timer1_reset(void);
 
@@ -195,15 +194,9 @@ static void _timer1_reset(void)
     _timer1_config();
 }
 
-static void
-_sensor_cb(float roll, float pitch, float yaw)
+static void _orientation_send(float roll, float pitch, float yaw)
 {
-    short command_roll, command_pitch;
-
-    command_roll = pid_update(&pid_roll, receiver_roll, roll);
-    command_pitch = pid_update(&pid_pitch, receiver_pitch, pitch);
-
-    motor_command_apply(command_roll, command_pitch, 0);
+    static unsigned char orientation_delay = 0;
 
     if (flags & REQUESTING_ORIENTATION)
     {
@@ -215,6 +208,26 @@ _sensor_cb(float roll, float pitch, float yaw)
         else
             orientation_delay++;
     }
+}
+
+static void
+_sensor_cb(float roll, float pitch, float yaw)
+{
+
+    short command_roll, command_pitch;
+
+    if ((throttle == 0))
+    {
+        _orientation_send(roll, pitch, yaw);
+        return;
+    }
+
+    command_roll = pid_update(&pid_roll, receiver_roll, roll);
+    command_pitch = pid_update(&pid_pitch, receiver_pitch, pitch);
+
+    motor_command_apply(command_roll, command_pitch, 0);
+
+    _orientation_send(roll, pitch, yaw);
 }
 
 void agent_init(void)
