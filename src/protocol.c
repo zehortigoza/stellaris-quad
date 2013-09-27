@@ -69,6 +69,7 @@ static void _radio_cb(char *text)
             break;
         }
         case ORIENTATION:
+        case ESC_CONFIG:
         {
             unsigned char enable;
 
@@ -94,6 +95,33 @@ static void _radio_cb(char *text)
             i = atof(pch);
 
             protocol_msg_func(type, request, p, i);
+            break;
+        }
+        case ESC_CONFIG_DATA:
+        {
+            unsigned int fl, fr, bl, br;
+
+            pch = strtok(NULL, ";");
+            if (!pch || pch[0] == '$')
+                return;
+            fl = atoi(pch);
+
+            pch = strtok(NULL, ";");
+            if (!pch || pch[0] == '$')
+                return;
+            fr = atoi(pch);
+
+            pch = strtok(NULL, ";");
+            if (!pch || pch[0] == '$')
+                return;
+            bl = atoi(pch);
+
+            pch = strtok(NULL, ";");
+            if (!pch || pch[0] == '$')
+                return;
+            br = atoi(pch);
+
+            protocol_msg_func(type, request, fl, fr, bl, br);
             break;
         }
         default:
@@ -149,6 +177,8 @@ unsigned char protocol_msg_send(Protocol_Msg_Type type, char request, ...)
         case CALIBRATE:
         case MOVE:
         case CONFIGS_WRITE:
+        case ESC_CONFIG:
+        case ESC_CONFIG_DATA:
         {
             //only reply
             sprintf(tx_buffer, "^;%c;0;$\n", type);

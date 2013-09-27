@@ -24,9 +24,12 @@ static pid_data pid_pitch;
 
 /*
  * bit0 = requesting orientation
+ * bit1 = esc config
  */
 static unsigned char flags = 0;
 #define REQUESTING_ORIENTATION GPIO_PIN_0
+
+#define ESC_CONFIG_FLAG GPIO_PIN_1
 
 static void _timer1_reset(void);
 
@@ -131,7 +134,7 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
         }
         case ORIENTATION:
         {
-            unsigned char enable = va_arg(ap, int);
+            unsigned char enable = va_arg(ap, unsigned int);
             if (enable)
                 flags |= REQUESTING_ORIENTATION;
             else
@@ -152,6 +155,27 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
             configuration.p_gaing = p;
             configuration.i_gaing = i;
             config_write(&configuration);
+            protocol_msg_send(type, 0);
+            break;
+        }
+        case ESC_CONFIG:
+        {
+            unsigned char enable = va_arg(ap, unsigned int);
+            if (enable)
+                flags |= ESC_CONFIG_FLAG;
+            else
+                flags &= ~ESC_CONFIG_FLAG;
+            protocol_msg_send(type, 0);
+            break;
+        }
+        case ESC_CONFIG_DATA:
+        {
+            unsigned int fl = va_arg(ap, unsigned int);
+            unsigned int fr = va_arg(ap, unsigned int);
+            unsigned int bl = va_arg(ap, unsigned int);
+            unsigned int br = va_arg(ap, unsigned int);
+
+            motors_velocity_set(fl, fr, bl, br);
             protocol_msg_send(type, 0);
             break;
         }
@@ -216,7 +240,7 @@ _sensor_cb(float roll, float pitch, float yaw)
 
     short command_roll, command_pitch;
 
-    if ((throttle == 0))
+    if ((throttle == 0) || (flags & ESC_CONFIG_FLAG))
     {
         _orientation_send(roll, pitch, yaw);
         return;
@@ -249,7 +273,7 @@ void agent_init(void)
 void timer1_500ms_interruption(void)
 {
     //clear interruption, must be the first thing.
-    //more info read documentarion
+    //more info read documentation
     TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
 
     //remove movements
