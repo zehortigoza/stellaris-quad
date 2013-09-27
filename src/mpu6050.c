@@ -120,6 +120,9 @@ int mpu6050_init(sensor_data_ready_callback func)
 
     _calibrate_gyro = SAMPLES_TO_CALIBRATE;
 
+    //second highest priority
+    IntPrioritySet(INT_GPIOA, 1);
+
     return 0;
 }
 

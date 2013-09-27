@@ -41,6 +41,9 @@ void i2c_bus_init(unsigned char address)
     I2CMasterIntEnable(I2C1_MASTER_BASE);
     IntEnable(INT_I2C1);
 
+    //second highest priority
+    IntPrioritySet(INT_I2C1, 1);
+
     slave_address = address;
     state = BUS_INITIALIZED;
 }

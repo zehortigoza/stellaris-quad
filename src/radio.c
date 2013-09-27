@@ -43,6 +43,9 @@ void radio_init(radio_data_callback func)
 
     UARTEnable(UART1_BASE);
 
+    //normal priority
+    IntPrioritySet(INT_UART1, 2);
+
     radio_send("init\n");//open tcp connection, this avoid trash been send
 }
 

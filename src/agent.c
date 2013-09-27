@@ -167,14 +167,23 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
 
 static void _timer1_config(void)
 {
-    //enable timer1
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
+    static char first_time = 1;
+
+    if (first_time)
+    {
+        //enable timer1
+        SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
+        //enable interruption in timer1
+        IntEnable(INT_TIMER1A);
+        //normal priority
+        IntPrioritySet(INT_TIMER1A, 2);
+
+        first_time = 0;
+    }
     //configure to count down
     TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
     //value to count down
     TimerLoadSet(TIMER1_BASE, TIMER_A, SysCtlClockGet() / 2);
-    //enable interruption in timer1
-    IntEnable(INT_TIMER1A);
     //enable generate a interruption in timer timeout
     TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
     //enable timer count
