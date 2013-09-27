@@ -73,11 +73,10 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
 
             switch (axis)
             {
-                case AXIS_Z:
+                case AXIS_Z://throttle
                 {
                     throttle = num;
                     receiver_pitch = receiver_roll = receiver_yaw = 0;
-                    motors_velocity_set(throttle, throttle, throttle, throttle);
                     break;
                 }
                 case AXIS_X://roll
