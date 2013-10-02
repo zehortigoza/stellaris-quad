@@ -9,6 +9,7 @@ SOURCES    += startup.c
 SOURCES    += syscalls.c
 SOURCES    += agent.c
 SOURCES    += MadgwickAHRS.c
+#SOURCES    += MahonyAHRS.c
 SOURCES    += i2c.c
 SOURCES    += motors.c
 SOURCES    += mpu6050.c

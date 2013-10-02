@@ -24,7 +24,7 @@ static volatile float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	// quaternion 
 
 // Fast inverse square-root
 // See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
-float invSqrt(float x)
+static float invSqrt(float x)
 {
     float halfx = 0.5f * x;
     float y = x;
