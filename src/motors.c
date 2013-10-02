@@ -136,17 +136,3 @@ void motors_velocity_set(unsigned short fl, unsigned short fr, unsigned short bl
     motors_tricks[2] = _velocity_set(bl);
     motors_tricks[3] = _velocity_set(br);
 }
-
-#define MICROS_CALC(tricks) tricks / TRICKS_1MICRO
-
-void motors_velocity_get(unsigned char *fl, unsigned char *fr, unsigned char *bl, unsigned char *br)
-{
-    if (fl)
-        *fl = MICROS_CALC(motors_tricks[0]);
-    if (fr)
-        *fr = MICROS_CALC(motors_tricks[1]);
-    if (bl)
-        *bl = MICROS_CALC(motors_tricks[2]);
-    if (br)
-        *br = MICROS_CALC(motors_tricks[3]);
-}
