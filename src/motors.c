@@ -8,37 +8,26 @@ static unsigned int TRICKS_1MICRO;
 
 #define TRICKS_4MS (TRICKS_1MICRO * 4000)
 
-//index 0 = front right, 1 = front left, 2 = back right, 3 = back left
+//index 0 = front left, 1 = front right, 2 = back left, 3 = back right
 static unsigned int motors_tricks[4];
 
-//TODO remove:
-//this in only used because I had not setup the other motors pins
-static unsigned char temp_motor_state[4];
+#define FL GPIO_PIN_4
+#define FR GPIO_PIN_2
+#define BL GPIO_PIN_6
+#define BR GPIO_PIN_7
+static unsigned char _motors_pins[] = {FL, FR, BL, BR};
 
 static unsigned char motor_state_get(unsigned char index)
 {
-    if (index == 0)
-        return GPIOPinRead(GPIO_PORTB_BASE, GPIO_PIN_3);
-    else
-        return temp_motor_state[index];
+    return GPIOPinRead(GPIO_PORTB_BASE, _motors_pins[index]);
 }
 
 static void motor_state_set(unsigned char index, unsigned char up)
 {
     if (up)
-    {
-        if (index == 0)
-            GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_3, GPIO_PIN_3);
-        else
-            temp_motor_state[index] = 1;
-    }
+        GPIOPinWrite(GPIO_PORTB_BASE, _motors_pins[index], _motors_pins[index]);
     else
-    {
-        if (index == 0)
-            GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_3, 0);
-        else
-            temp_motor_state[index] = 0;
-    }
+        GPIOPinWrite(GPIO_PORTB_BASE, _motors_pins[index], 0);
 }
 
 void timer0_motors_interruption(void)
@@ -77,19 +66,17 @@ int motors_init(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
 
     //config pin to output
-    GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, GPIO_PIN_3);
+    GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, FL);
+    GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, FR);
+    GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, BL);
+    GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, BR);
     //set pin to 3
-    GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_3, 0);
+    GPIOPinWrite(GPIO_PORTB_BASE, FL|FR|BL|BR, 0);
 
     motors_tricks[0] = 0;
     motors_tricks[1] = 0;
     motors_tricks[2] = 0;
     motors_tricks[3] = 0;
-
-    //TODO remove
-    temp_motor_state[1] = 0;
-    temp_motor_state[2] = 0;
-    temp_motor_state[3] = 0;
 
     //configure to count down
     TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
