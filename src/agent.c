@@ -10,6 +10,10 @@ static config configuration;
 
 #define MPU_6050_FREQUENCY 500
 
+//at this rate, pid and motors will be updated
+#define COMMAND_FREQUENCY 100
+#define COMMAND_COUNTER MPU_6050_FREQUENCY/COMMAND_FREQUENCY
+
 //data received from controller
 static unsigned short throttle = 0;
 static short receiver_pitch = 0;
@@ -237,7 +241,7 @@ static void _orientation_send(float roll, float pitch, float yaw)
 static void
 _sensor_cb(float roll, float pitch, float yaw)
 {
-
+    static unsigned short command_counter = 0;
     short command_roll, command_pitch;
 
     if ((throttle == 0) || (flags & ESC_CONFIG_FLAG))
@@ -245,6 +249,14 @@ _sensor_cb(float roll, float pitch, float yaw)
         _orientation_send(roll, pitch, yaw);
         return;
     }
+
+    //only will update pid and motors values at COMMAND_FREQUENCY
+    if (command_counter != COMMAND_COUNTER)
+    {
+        command_counter++;
+        return;
+    }
+    command_counter = 0;
 
     command_roll = pid_update(&pid_roll, receiver_roll, roll);
     command_pitch = pid_update(&pid_pitch, receiver_pitch, pitch);
@@ -264,8 +276,8 @@ void agent_init(void)
     procotol_init(_msg_cb);
     mpu6050_init(_sensor_cb);
 
-    pid_init(&pid_roll, configuration.p_gaing, configuration.i_gaing, 0, 500, (1.0/MPU_6050_FREQUENCY));
-    pid_init(&pid_pitch, configuration.p_gaing, configuration.i_gaing, 0, 500, (1.0/MPU_6050_FREQUENCY));
+    pid_init(&pid_roll, configuration.p_gaing, configuration.i_gaing, 0, 500, (1.0/COMMAND_FREQUENCY));
+    pid_init(&pid_pitch, configuration.p_gaing, configuration.i_gaing, 0, 500, (1.0/COMMAND_FREQUENCY));
 
     _timer1_config();
 }
