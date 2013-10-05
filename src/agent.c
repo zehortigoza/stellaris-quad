@@ -243,9 +243,15 @@ _sensor_cb(float roll, float pitch, float yaw)
 {
     static unsigned short command_counter = 0;
     short command_roll, command_pitch;
+    static unsigned char set_to_zero = 0;
 
     if ((throttle == 0) || (flags & ESC_CONFIG_FLAG))
     {
+        if (set_to_zero && !(flags & ESC_CONFIG_FLAG))
+        {
+            motors_velocity_set(0, 0, 0, 0);
+            set_to_zero = 0;
+        }
         _orientation_send(roll, pitch, yaw);
         return;
     }
@@ -257,6 +263,7 @@ _sensor_cb(float roll, float pitch, float yaw)
         return;
     }
     command_counter = 0;
+    set_to_zero = 1;
 
     command_roll = pid_update(&pid_roll, receiver_roll, roll);
     command_pitch = pid_update(&pid_pitch, receiver_pitch, pitch);
