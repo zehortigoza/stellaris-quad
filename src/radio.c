@@ -51,11 +51,12 @@ void radio_init(radio_data_callback func)
 
 static void _tx_buffer_fill(void)
 {
-    unsigned char not_full = 1;
-    while (tx_buffer[tx_index] && not_full)
+    unsigned char char_add = 1;
+    while (tx_buffer[tx_index] && char_add)
     {
-        not_full = UARTCharPutNonBlocking(UART1_BASE, tx_buffer[tx_index]);
-        tx_index++;
+        char_add = UARTCharPutNonBlocking(UART1_BASE, tx_buffer[tx_index]);
+        if (char_add)
+            tx_index++;
     }
 
     if (!tx_buffer[tx_index])
