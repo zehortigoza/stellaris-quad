@@ -2,6 +2,6 @@
 #define MOTORS_H
 
 int motors_init(void);
-void motors_velocity_set(unsigned char fr, unsigned char fl, unsigned char br, unsigned char bl);
+void motors_velocity_set(unsigned short fl, unsigned short fr, unsigned short bl, unsigned short br);
 
 #endif
