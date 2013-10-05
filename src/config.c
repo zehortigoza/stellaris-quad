@@ -9,10 +9,17 @@
 
 #define FLASH_OFFSET (0x0003FFFC-sizeof(config))
 
+//only set this to 1 when develop was finish
+//write flash every time stelaris is programed
+//will decrease the flash life.
+#define ALLOW_WRITE_IN_FLASH 0
+
 void config_write(config *conf)
 {
+#if ALLOW_WRITE_IN_FLASH
     FlashErase(FLASH_OFFSET);
     FlashProgram((unsigned long *)conf, (unsigned long)FLASH_OFFSET, sizeof(config));
+#endif
 }
 
 void config_write_initial(void)
@@ -30,8 +37,14 @@ void config_read(config *conf)
     memcpy(conf, internal, sizeof(config));
     if (conf->version != VERSION)
     {
+#if ALLOW_WRITE_IN_FLASH
         config_write_initial();
         memcpy(conf, internal, sizeof(config));
+#else
+        conf->version = VERSION;
+        conf->p_gaing = DEFAULT_P_GAIN;
+        conf->i_gaing = DEFAULT_I_GAIN;
+#endif
     }
 }
 
