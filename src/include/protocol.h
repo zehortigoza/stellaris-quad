@@ -15,7 +15,8 @@ typedef enum
   CONFIGS = 'f',//controller ask for configs
   CONFIGS_WRITE = 'w',//controller write configs
   ESC_CONFIG = 'e',//controller enable esc config mode
-  ESC_CONFIG_DATA = 'h'//controller send esc configs data
+  ESC_CONFIG_DATA = 'h',//controller send esc configs data
+  ARM = 's'
 } Protocol_Msg_Type;
 
 typedef enum

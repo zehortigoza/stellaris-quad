@@ -100,13 +100,16 @@ int motors_init(void)
 #define MIN_VALUE 1000
 #define MAX_VALUE 2000
 
+#define MIN_IN_FLY 1150
+#define MAX_IN_FLY 1950
+
 static unsigned int
-_velocity_set(unsigned short value)
+_velocity_set(unsigned short value, unsigned short min, unsigned short max)
 {
-    if (value > MAX_VALUE)
-        value = MAX_VALUE;
-    else if (value <  MIN_VALUE && value != 0)
-        value = MIN_VALUE;
+    if (value > max)
+        value = max;
+    else if (value <  min && value != 0)
+        value = min;
     return TRICKS_1MICRO * value;
 }
 
@@ -116,10 +119,12 @@ _velocity_set(unsigned short value)
  * max rotation = 2000
  * motor turn off = 0
  */
-void motors_velocity_set(unsigned short fl, unsigned short fr, unsigned short bl, unsigned short br)
+void motors_velocity_set(unsigned short fl, unsigned short fr, unsigned short bl, unsigned short br, unsigned char fly_mode)
 {
-    motors_tricks[0] = _velocity_set(fl);
-    motors_tricks[1] = _velocity_set(fr);
-    motors_tricks[2] = _velocity_set(bl);
-    motors_tricks[3] = _velocity_set(br);
+    unsigned short min = fly_mode ? MIN_IN_FLY : MIN_VALUE;
+    unsigned short max = fly_mode ? MAX_IN_FLY : MAX_VALUE;
+    motors_tricks[0] = _velocity_set(fl, min, max);
+    motors_tricks[1] = _velocity_set(fr, min, max);
+    motors_tricks[2] = _velocity_set(bl, min, max);
+    motors_tricks[3] = _velocity_set(br, min, max);
 }

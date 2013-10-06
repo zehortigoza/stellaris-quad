@@ -64,6 +64,7 @@ static void _radio_cb(char *text)
         case GYRO:
         case ACCELEROMETER:
         case CONFIGS:
+        case ARM:
         {
             protocol_msg_func(type, request);
             break;
@@ -179,6 +180,7 @@ unsigned char protocol_msg_send(Protocol_Msg_Type type, char request, ...)
         case CONFIGS_WRITE:
         case ESC_CONFIG:
         case ESC_CONFIG_DATA:
+        case ARM:
         {
             //only reply
             sprintf(tx_buffer, "^;%c;0;$\n", type);

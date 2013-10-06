@@ -29,11 +29,13 @@ static pid_data pid_pitch;
 /*
  * bit0 = requesting orientation
  * bit1 = esc config
+ * bit2 = arm
  */
 static unsigned char flags = 0;
 #define REQUESTING_ORIENTATION GPIO_PIN_0
 
 #define ESC_CONFIG_FLAG GPIO_PIN_1
+#define ARMED_FLAG GPIO_PIN_2
 
 static void _timer1_reset(void);
 
@@ -47,7 +49,17 @@ static void motor_command_apply(short command_roll, short command_pitch, short c
     fr = throttle - command_pitch - command_roll + (YAW_DIRECTION * command_yaw);
     bl = throttle + command_pitch + command_roll + (YAW_DIRECTION * command_yaw);
     br = throttle + command_pitch - command_roll - (YAW_DIRECTION * command_yaw);
-    motors_velocity_set(fl, fr, bl, br);
+
+    //to avoid turn motors off in air
+    if (fl == 0)
+        fl = 1;
+    if (fr == 1)
+        fr = 1;
+    if (bl == 0)
+        bl = 1;
+    if (br == 0)
+        br = 1;
+    motors_velocity_set(fl, fr, bl, br, 1);
 }
 
 /*
@@ -73,6 +85,9 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
         {
             Protocol_Axis axis;
             unsigned short num;
+
+            if (!(flags & ARMED_FLAG))
+                break;
 
             axis = va_arg(ap, int);
             num = va_arg(ap, unsigned int);
@@ -179,7 +194,15 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
             unsigned int bl = va_arg(ap, unsigned int);
             unsigned int br = va_arg(ap, unsigned int);
 
-            motors_velocity_set(fl, fr, bl, br);
+            motors_velocity_set(fl, fr, bl, br, 0);
+            protocol_msg_send(type, 0);
+            break;
+        }
+        case ARM:
+        {
+            //this will set motors to the lowest velocity(1000)
+            motors_velocity_set(1, 1, 1, 1, 0);
+            flags |= ARMED_FLAG;
             protocol_msg_send(type, 0);
             break;
         }
@@ -249,7 +272,7 @@ _sensor_cb(float roll, float pitch, float yaw)
     {
         if (set_to_zero && !(flags & ESC_CONFIG_FLAG))
         {
-            motors_velocity_set(0, 0, 0, 0);
+            motors_velocity_set(0, 0, 0, 0, 1);
             set_to_zero = 0;
         }
         _orientation_send(roll, pitch, yaw);
