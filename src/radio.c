@@ -28,7 +28,7 @@ void radio_init(radio_data_callback func)
     GPIOPinTypeUART(GPIO_PORTB_BASE, GPIO_PIN_1);
 
     //Configure the UART for 9600, 8-N-1 operation.
-    UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 9600,
+    UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 115200,
                         (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
 
     //Enable the UART interrupt.
