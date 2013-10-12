@@ -3,10 +3,10 @@
 
 static radio_data_callback radio_data_func = NULL;
 
-static char tx_buffer[MAX_STRING+1];
+static char tx_buffer[MAX_STRING+1], tx_spare_buffer[MAX_STRING+1];
 static int tx_index = 0;
 
-static char rx_buffer[MAX_STRING];
+static char rx_buffer[50];
 static int rx_index = 0;
 
 void radio_init(radio_data_callback func)
@@ -46,6 +46,7 @@ void radio_init(radio_data_callback func)
     //normal priority
     IntPrioritySet(INT_UART1, 2);
 
+    tx_spare_buffer[0] = 0;
     radio_send("init\n");//open tcp connection, this avoid trash been send
 }
 
@@ -61,6 +62,12 @@ static void _tx_buffer_fill(void)
 
     if (!tx_buffer[tx_index])
         tx_index = 0;
+
+    if (tx_spare_buffer[0])
+    {
+        radio_send(tx_spare_buffer);
+        tx_spare_buffer[0] = 0;
+    }
 }
 
 unsigned char radio_send(char *txt)
@@ -68,7 +75,14 @@ unsigned char radio_send(char *txt)
     if (strlen(txt) > MAX_STRING)
         return 0;
     if (tx_index)
+    {
+        if (!tx_spare_buffer[0])
+        {
+            sprintf(tx_spare_buffer, "%s", txt);
+            return 1;
+        }
         return 0;
+    }
 
     sprintf(tx_buffer, "%s", txt);
     tx_index = 0;
