@@ -17,6 +17,7 @@ SOURCES    += protocol.c
 SOURCES    += radio.c
 SOURCES    += pid.c
 SOURCES    += config.c
+SOURCES    += blackbox.c
 
 #SOURCES  = $(wildcard src/*.c)
 

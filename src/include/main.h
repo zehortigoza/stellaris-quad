@@ -34,4 +34,9 @@
 #define BLUE_LED  GPIO_PIN_2
 #define GREEN_LED GPIO_PIN_3
 
+#define BLACKBOX_ENABLED 1
+#if BLACKBOX_ENABLED
+#include "blackbox.h"
+#endif
+
 #endif

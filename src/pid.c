@@ -1,3 +1,4 @@
+#include "main.h"
 #include "pid.h"
 
 void pid_init(pid_data *pid, float p_gaing, float i_gain, float d_gain, float integraded_error_limit, float time_period)
@@ -16,6 +17,9 @@ float pid_update(pid_data *pid, float target, float current)
     float d_err;
     float output;
     float i_output;
+#if BLACKBOX_ENABLED
+    static unsigned char is_roll_pid = 1;
+#endif
 
     //integral term
     pid->integrated_error += (error * pid->time_period);
@@ -35,6 +39,11 @@ float pid_update(pid_data *pid, float target, float current)
              i_output;
 
     pid->last_error = error;
+
+#if BLACKBOX_ENABLED
+    blackbox_pid_values(is_roll_pid ? 'r' : 'p', pid->integrated_error, i_output, pid->p_gain * error);
+    is_roll_pid = !is_roll_pid;
+#endif
 
     return output;
 }

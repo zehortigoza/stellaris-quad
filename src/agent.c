@@ -60,6 +60,11 @@ static void motor_command_apply(short command_roll, short command_pitch, short c
     if (br == 0)
         br = 1;
     motors_velocity_set(fl, fr, bl, br, 1);
+
+#if BLACKBOX_ENABLED
+    blackbox_commands_set(throttle, command_pitch, command_roll);
+    blackbox_velocity_set(fl, fr, bl, br);
+#endif
 }
 
 /*
@@ -276,6 +281,9 @@ _sensor_cb(float roll, float pitch, float yaw)
             set_to_zero = 0;
         }
         _orientation_send(roll, pitch, yaw);
+#if BLACKBOX_ENABLED
+        blackbox_orientation_set(roll, pitch);
+#endif
         return;
     }
 
@@ -294,6 +302,9 @@ _sensor_cb(float roll, float pitch, float yaw)
     motor_command_apply(command_roll, command_pitch, 0);
 
     _orientation_send(roll, pitch, yaw);
+#if BLACKBOX_ENABLED
+    blackbox_orientation_set(roll, pitch);
+#endif
 }
 
 void agent_init(void)
@@ -309,6 +320,11 @@ void agent_init(void)
     pid_init(&pid_roll, configuration.p_gaing, configuration.i_gaing, 0, 500, (1.0/COMMAND_FREQUENCY));
     pid_init(&pid_pitch, configuration.p_gaing, configuration.i_gaing, 0, 500, (1.0/COMMAND_FREQUENCY));
 
+#if BLACKBOX_ENABLED
+    blackbox_init();
+    blackbox_gains_set(configuration.p_gaing, configuration.i_gaing);
+#endif
+
     _timer1_config();
 }
 
@@ -323,4 +339,15 @@ void timer1_500ms_interruption(void)
 
     //value do count down
     TimerLoadSet(TIMER1_BASE, TIMER_A, SysCtlClockGet() / 2);
+
+#if BLACKBOX_ENABLED
+    static char send = 0;
+    if (send == 4)
+    {
+        blackbox_send();
+        send = 0;
+    }
+    else
+        send++;
+#endif
 }
