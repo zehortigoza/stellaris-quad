@@ -256,7 +256,7 @@ static void _orientation_send(float roll, float pitch, float yaw)
 
     if (flags & REQUESTING_ORIENTATION)
     {
-        if (orientation_delay == (MPU_6050_FREQUENCY/4))//each 0.25 second
+        if (orientation_delay == (MPU_6050_FREQUENCY/8))//each 0.125 second
         {
             protocol_msg_send(ORIENTATION, 0, roll, pitch, yaw);
             orientation_delay = 0;
