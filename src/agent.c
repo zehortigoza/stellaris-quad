@@ -272,6 +272,7 @@ _sensor_cb(float roll, float pitch, float yaw)
     static unsigned short command_counter = 0;
     short command_roll, command_pitch;
     static unsigned char set_to_zero = 0;
+    int int_roll, int_pitch;
 
     if ((throttle == 0) || (flags & ESC_CONFIG_FLAG))
     {
@@ -296,8 +297,10 @@ _sensor_cb(float roll, float pitch, float yaw)
     command_counter = 0;
     set_to_zero = 1;
 
-    command_roll = pid_update(&pid_roll, receiver_roll, roll);
-    command_pitch = pid_update(&pid_pitch, receiver_pitch, pitch);
+    int_roll = roll;
+    int_pitch = pitch;
+    command_roll = pid_update(&pid_roll, receiver_roll, int_roll);
+    command_pitch = pid_update(&pid_pitch, receiver_pitch, int_pitch);
 
     motor_command_apply(command_roll, command_pitch, 0);
 

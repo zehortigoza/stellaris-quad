@@ -11,7 +11,7 @@ void pid_init(pid_data *pid, float p_gaing, float i_gain, float d_gain, float in
     pid->last_error = pid->integrated_error = 0;
 }
 
-float pid_update(pid_data *pid, float target, float current)
+float pid_update(pid_data *pid, int target, int current)
 {
     float error = target - current;
     float d_err;
