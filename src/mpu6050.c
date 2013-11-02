@@ -8,7 +8,7 @@
 #define MPU6050_ADDR 0x0068//ADO = low
 
 #define SAMPLES_TO_CALIBRATE 500*5//4s
-static short _calibrate_gyro = 0;
+static short _calibrate_euler = 0;
 
 #define ACCEL_SCALE 8192.0
 #define GYRO_SCALE 65.5
@@ -118,7 +118,7 @@ int mpu6050_init(sensor_data_ready_callback func)
     //trigger interruption only in rising edge
     GPIOIntTypeSet(GPIO_PORTA_BASE, GPIO_PIN_5, GPIO_RISING_EDGE);
 
-    _calibrate_gyro = SAMPLES_TO_CALIBRATE;
+    _calibrate_euler = SAMPLES_TO_CALIBRATE;
 
     //second highest priority
     IntPrioritySet(INT_GPIOA, 1);
@@ -144,32 +144,6 @@ static void _raw_swap(mpu6050_raw *raw)
     _swap(&raw->reg.x_gyro_h, &raw->reg.x_gyro_l);
     _swap(&raw->reg.y_gyro_h, &raw->reg.y_gyro_l);
     _swap(&raw->reg.z_gyro_h, &raw->reg.z_gyro_l);
-}
-
-static void _offset_remove(mpu6050_raw *raw)
-{
-    static int16_t gx_offset = 0, gy_offset = 0, gz_offset = 0;
-
-    if (_calibrate_gyro)
-    {
-        if (!gx_offset && !gy_offset && !gz_offset)
-        {
-            gx_offset = raw->value.x_gyro;
-            gy_offset = raw->value.y_gyro;
-            gz_offset = raw->value.z_gyro;
-        }
-        else
-        {
-            gx_offset = (raw->value.x_gyro + gx_offset) / 2;
-            gy_offset = (raw->value.y_gyro + gy_offset) / 2;
-            gz_offset = (raw->value.z_gyro + gz_offset) / 2;
-        }
-        _calibrate_gyro--;
-    }
-
-    raw->value.x_gyro -= gx_offset;
-    raw->value.y_gyro -= gy_offset;
-    raw->value.z_gyro -= gz_offset;
 }
 
 #define SCALE(val, val2) (((float)val) / val2)
@@ -210,6 +184,36 @@ static void _euler_angles_calc(float *roll, float *pitch, float *yaw, float q0, 
     *yaw = _rad2deg(*yaw);
 }
 
+static unsigned char _remove_offsets(float *roll, float *pitch, float *yaw)
+{
+    static float offset_pitch = 0, offset_roll = 0, offset_yaw = 0;
+
+    if (_calibrate_euler)
+    {
+        if (_calibrate_euler == SAMPLES_TO_CALIBRATE)
+        {
+            offset_pitch = *pitch;
+            offset_roll = *roll;
+            offset_yaw = *yaw;
+        }
+        else
+        {
+            offset_pitch = (offset_pitch + *pitch) / 2;
+            offset_roll = (offset_roll + *roll) / 2;
+            offset_yaw = (offset_yaw + *yaw) / 2;
+        }
+        _calibrate_euler--;
+        return 1;
+    }
+    else
+    {
+        *roll -= offset_roll;
+        *pitch -= offset_pitch;
+        *yaw -= offset_yaw;
+        return 0;
+    }
+}
+
 static void _raw_cb(unsigned char *data)
 {
     mpu6050_raw raw;
@@ -218,11 +222,7 @@ static void _raw_cb(unsigned char *data)
 
     memcpy(&raw, data, sizeof(raw));
     _raw_swap(&raw);
-    _offset_remove(&raw);
 
-    //while calibrating, do not start update fusion algorithm
-    if (_calibrate_gyro)
-        return;
     _scale_calc(&raw, &gx, &gy, &gz, &ax, &ay, &az);
 
     gx = _deg2rad(gx);
@@ -231,6 +231,10 @@ static void _raw_cb(unsigned char *data)
 
     MadgwickAHRSupdateIMU(gx, gy, gz, ax, ay, az, &roll, &pitch, &yaw, _euler_angles_calc);
     //MahonyAHRSupdateIMU(gx, gy, gz, ax, ay, az, &roll, &pitch, &yaw, _euler_angles_calc);
+
+    //while calibrating, do not send values to agent module
+    if (_remove_offsets(&roll, &pitch, &yaw))
+        return;
 
     sensor_cb(roll, pitch, yaw);
 }
