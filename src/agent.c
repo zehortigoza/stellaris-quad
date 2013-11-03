@@ -16,6 +16,7 @@ static config configuration;
 
 //data received from controller
 static unsigned short throttle = 0;
+static unsigned short min_throttle;
 static short receiver_pitch = 0;
 static short receiver_roll = 0;
 static short receiver_yaw = 0;
@@ -45,6 +46,10 @@ static void _timer1_reset(void);
 static void motor_command_apply(short command_roll, short command_pitch, short command_yaw)
 {
     unsigned short fl, fr, bl, br;
+
+    if (throttle < min_throttle)
+        throttle = min_throttle;
+
     fl  = throttle - command_pitch + command_roll - (YAW_DIRECTION * command_yaw);
     fr = throttle - command_pitch - command_roll + (YAW_DIRECTION * command_yaw);
     bl = throttle + command_pitch + command_roll + (YAW_DIRECTION * command_yaw);
@@ -329,6 +334,8 @@ void agent_init(void)
 #endif
 
     _timer1_config();
+
+    min_throttle = motors_min_velocity_in_flight();
 }
 
 void timer1_500ms_interruption(void)
