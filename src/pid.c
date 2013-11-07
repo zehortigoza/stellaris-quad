@@ -14,32 +14,31 @@ void pid_init(pid_data *pid, float p_gaing, float i_gain, float d_gain, float in
 
 float pid_update(pid_data *pid, int target, int current)
 {
-    float error = target - current;
-    float d_err;
-    float output;
-    float i_output;
+    float pid_error = target - current;
+    float d_err, output;
+    float p_output, i_output, d_output;
 
     //integral term
-    pid->integrated_error += (error * pid->time_period);
-
+    pid->integrated_error += (pid_error * pid->time_period);
     i_output = pid->i_gain * pid->integrated_error;
-
     if (i_output < (-pid->integraded_error_limit))
         i_output = -pid->integraded_error_limit;
     else if (i_output > pid->integraded_error_limit)
         i_output = pid->integraded_error_limit;
 
     //derivative term
-    d_err = (error - pid->last_error) / pid->time_period;
+    d_err = (pid_error - pid->last_error) / pid->time_period;
+    d_output = pid->d_gain * d_err;
+    pid->last_error = pid_error;
 
-    output = (pid->p_gain * error) +
-             (pid->d_gain * d_err) +
-             i_output;
+    //proportional term
+    p_output = pid->p_gain * pid_error;
 
-    pid->last_error = error;
+    output = p_output + i_output + d_output;
+
 
 #if BLACKBOX_ENABLED
-    blackbox_pid_values(pid->id, pid->integrated_error, i_output, pid->p_gain * error);
+    blackbox_pid_values(pid->id, pid->integrated_error, p_output, i_output, d_output);
 #endif
 
     return output;

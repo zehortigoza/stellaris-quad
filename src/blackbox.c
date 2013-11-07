@@ -39,7 +39,7 @@ void blackbox_velocity_set(unsigned short fl, unsigned short fr, unsigned short 
     m_br = br;
 }
 
-void blackbox_pid_values(char pid, float integrated_error, float i_output, float p_output)
+void blackbox_pid_values(char pid, float integrated_error, float p_output, float i_output, float d_output)
 {
     if (pid == 'r')
     {
