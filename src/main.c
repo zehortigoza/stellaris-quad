@@ -37,7 +37,7 @@ int main(void)
     agent_init();
 
     while(1)
-        SysCtlDelay(2000000);
+        SysCtlDelay(100);
 
     return 0;
 }
