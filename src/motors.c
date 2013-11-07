@@ -70,7 +70,6 @@ int motors_init(void)
     GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, FR);
     GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, BL);
     GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, BR);
-    //set pin to 3
     GPIOPinWrite(GPIO_PORTB_BASE, FL|FR|BL|BR, 0);
 
     motors_tricks[0] = 0;

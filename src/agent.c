@@ -31,12 +31,15 @@ static pid_data pid_pitch;
  * bit0 = requesting orientation
  * bit1 = esc config
  * bit2 = arm
+ * bit3 = motor on
  */
 static unsigned char flags = 0;
 #define REQUESTING_ORIENTATION GPIO_PIN_0
 
 #define ESC_CONFIG_FLAG GPIO_PIN_1
 #define ARMED_FLAG GPIO_PIN_2
+
+#define MOTOR_ON_FLAG GPIO_PIN_3
 
 static void _timer1_reset(void);
 
@@ -106,7 +109,17 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
             {
                 case AXIS_Z://throttle
                 {
+                    if (throttle == 0 && num > 0)
+                        flags |= MOTOR_ON_FLAG;
+
                     throttle = num;
+                    //Only received throttle=0 when pressed Turn off on controller
+                    if (throttle == 0)
+                    {
+                        motors_velocity_set(0, 0, 0, 0, 0);
+                        flags &= ~ARMED_FLAG;
+                        flags &= ~MOTOR_ON_FLAG;
+                    }
                     receiver_pitch = receiver_roll = receiver_yaw = 0;
                     break;
                 }
@@ -164,10 +177,13 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
         case ORIENTATION:
         {
             unsigned char enable = va_arg(ap, unsigned int);
-            if (enable)
-                flags |= REQUESTING_ORIENTATION;
-            else
-                flags &= ~REQUESTING_ORIENTATION;
+            if (!(flags & ARMED_FLAG))
+            {
+                if (enable)
+                    flags |= REQUESTING_ORIENTATION;
+                else
+                    flags &= ~REQUESTING_ORIENTATION;
+            }
             break;
         }
         case CONFIGS:
@@ -190,11 +206,17 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
         case ESC_CONFIG:
         {
             unsigned char enable = va_arg(ap, unsigned int);
-            if (enable)
-                flags |= ESC_CONFIG_FLAG;
-            else
-                flags &= ~ESC_CONFIG_FLAG;
-            protocol_msg_send(type, 0);
+            if (!(flags & ARMED_FLAG))
+            {
+                if (enable)
+                    flags |= ESC_CONFIG_FLAG;
+                else
+                {
+                    flags &= ~ESC_CONFIG_FLAG;
+                    motors_velocity_set(0, 0, 0, 0, 0);
+                }
+                protocol_msg_send(type, 0);
+            }
             break;
         }
         case ESC_CONFIG_DATA:
@@ -204,12 +226,17 @@ static void _msg_cb(Protocol_Msg_Type type, char request, ...)
             unsigned int bl = va_arg(ap, unsigned int);
             unsigned int br = va_arg(ap, unsigned int);
 
-            motors_velocity_set(fl, fr, bl, br, 0);
-            protocol_msg_send(type, 0);
+            if (flags & ESC_CONFIG_FLAG)
+            {
+                motors_velocity_set(fl, fr, bl, br, 0);
+                protocol_msg_send(type, 0);
+            }
             break;
         }
         case ARM:
         {
+            if ((flags & ESC_CONFIG_FLAG) || (flags & REQUESTING_ORIENTATION) || (flags & MOTOR_ON_FLAG))
+                return;
             //this will set motors to the lowest velocity(1000)
             motors_velocity_set(1, 1, 1, 1, 0);
             flags |= ARMED_FLAG;
@@ -259,16 +286,13 @@ static void _orientation_send(float roll, float pitch, float yaw)
 {
     static unsigned char orientation_delay = 0;
 
-    if (flags & REQUESTING_ORIENTATION)
+    if (orientation_delay == (MPU_6050_FREQUENCY / 8))//each 0.125 second
     {
-        if (orientation_delay == (MPU_6050_FREQUENCY/8))//each 0.125 second
-        {
-            protocol_msg_send(ORIENTATION, 0, roll, pitch, yaw);
-            orientation_delay = 0;
-        }
-        else
-            orientation_delay++;
+        protocol_msg_send(ORIENTATION, 0, roll, pitch, yaw);
+        orientation_delay = 0;
     }
+    else
+        orientation_delay++;
 }
 
 static void
@@ -276,17 +300,12 @@ _sensor_cb(float roll, float pitch, float yaw)
 {
     static unsigned short command_counter = 0;
     short command_roll, command_pitch;
-    static unsigned char set_to_zero = 0;
     int int_roll, int_pitch;
 
-    if ((throttle == 0) || (flags & ESC_CONFIG_FLAG))
+    if (!(flags & MOTOR_ON_FLAG))
     {
-        if (set_to_zero && !(flags & ESC_CONFIG_FLAG))
-        {
-            motors_velocity_set(0, 0, 0, 0, 1);
-            set_to_zero = 0;
-        }
-        _orientation_send(roll, pitch, yaw);
+        if (flags & REQUESTING_ORIENTATION)
+            _orientation_send(roll, pitch, yaw);
 #if BLACKBOX_ENABLED
         blackbox_orientation_set(roll, pitch);
 #endif
@@ -300,7 +319,6 @@ _sensor_cb(float roll, float pitch, float yaw)
         return;
     }
     command_counter = 0;
-    set_to_zero = 1;
 
     int_roll = roll;
     int_pitch = pitch;
