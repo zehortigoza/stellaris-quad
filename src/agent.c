@@ -370,7 +370,8 @@ void timer1_500ms_interruption(void)
 
 #if BLACKBOX_ENABLED
     static char send = 0;
-    if (send == 4)
+    //each second
+    if (send == 2)
     {
         blackbox_send();
         send = 0;
