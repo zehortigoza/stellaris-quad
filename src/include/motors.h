@@ -6,4 +6,6 @@ void motors_velocity_set(unsigned short fl, unsigned short fr, unsigned short bl
 
 unsigned short motors_min_velocity_in_flight(void);
 
+void timer0_motors_interruption(void);
+
 #endif

@@ -7,11 +7,15 @@ static protocol_msg_callback protocol_msg_func = NULL;
 
 //^;<type>;<1=request | 0=reply>;param1;...;paramn;$
 //cel -> quad
-static void _radio_cb(char *text)
+static void _radio_cb(const char *received)
 {
     Protocol_Msg_Type type;
     char request;
-    char *pch = strtok(text, ";");
+    char text[MAX_STRING];
+    char *pch;
+
+    sprintf(text, "%s", received);
+    pch = strtok(text, ";");
 
     if (!pch || pch[0] != '^')
         return;

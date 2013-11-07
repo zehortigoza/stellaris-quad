@@ -1,5 +1,6 @@
 #include "stellariscommon.h"
 
+void HardwareInit(void);
 void ResetISR(void);
 static void NmiSR(void);
 static void FaultISR(void);
@@ -182,7 +183,7 @@ __attribute__ ((section(".isr_vector")))void (* const g_pfnVectors[])(void) =
     IntDefaultHandler                       // PWM 1 Fault
 };
 
-void HardwareInit()
+void HardwareInit(void)
 {
     main();
 }

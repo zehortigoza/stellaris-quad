@@ -56,7 +56,7 @@ CFLAGS     += -ffunction-sections
 CFLAGS     += -fdata-sections
 CFLAGS     += -MD
 CFLAGS     += -std=c99
-CFLAGS     += -Wall
+CFLAGS     += -Wall -Wextra -Wshadow -Wno-unused-parameter -Wvla -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wmissing-declarations -Wmissing-noreturn -Wendif-labels -Wstrict-aliasing=2 -Wwrite-strings -Wno-long-long -Wno-overlength-strings -Wno-missing-field-initializers -Wno-nested-externs -Wchar-subscripts -Wtype-limits -Wuninitialized
 CFLAGS     += -pedantic
 CFLAGS     += -DPART_LM4F120H5QR
 CFLAGS     += -Dgcc

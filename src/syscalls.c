@@ -7,6 +7,15 @@
 
 char *heap_end = 0;
 
+caddr_t _sbrk(unsigned int incr);
+int _close(int file);
+int _fstat(int file);
+int _isatty(int file);
+int _lseek(int file, int ptr, int dir);
+int _open(const char *name, int flags, int mode);
+int _read(int file, char *ptr, int len);
+int _write(int file, char *ptr, unsigned int len);
+
 caddr_t _sbrk(unsigned int incr)
 {
     extern unsigned long _heap_bottom;
@@ -55,7 +64,7 @@ int _open(const char *name, int flags, int mode)
 
 int _read(int file, char *ptr, int len)
 {
-    unsigned int i;
+    int i;
     for( i = 0; i < len; i++ ){
         ptr[i] = (char)MAP_UARTCharGet(UART0_BASE);
     }

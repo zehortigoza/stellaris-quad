@@ -70,7 +70,7 @@ static void _tx_buffer_fill(void)
     }
 }
 
-unsigned char radio_send(char *txt)
+unsigned char radio_send(const char *txt)
 {
     if (strlen(txt) > MAX_STRING)
         return 0;

@@ -358,6 +358,9 @@ void agent_init(void)
 
 void timer1_500ms_interruption(void)
 {
+#if BLACKBOX_ENABLED
+    static char send = 0;
+#endif
     //clear interruption, must be the first thing.
     //more info read documentation
     TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
@@ -369,7 +372,6 @@ void timer1_500ms_interruption(void)
     TimerLoadSet(TIMER1_BASE, TIMER_A, SysCtlClockGet() / 2);
 
 #if BLACKBOX_ENABLED
-    static char send = 0;
     //each second
     if (send == 2)
     {

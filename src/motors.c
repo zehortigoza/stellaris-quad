@@ -1,4 +1,5 @@
 #include "main.h"
+#include "motors.h"
 
 static unsigned char motor_index = 0;
 
