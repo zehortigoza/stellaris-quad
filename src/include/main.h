@@ -28,7 +28,7 @@
 #include "driverlib/i2c.h"
 #include "driverlib/flash.h"
 
-#define ENABLE_PRINTF 1
+#define ENABLE_PRINTF 0
 
 #define RED_LED   GPIO_PIN_1
 #define BLUE_LED  GPIO_PIN_2
