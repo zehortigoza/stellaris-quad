@@ -343,8 +343,8 @@ void agent_init(void)
     procotol_init(_msg_cb);
     mpu6050_init(_sensor_cb);
 
-    pid_init(&pid_roll, configuration.p_gaing, configuration.i_gaing, 0, 300, (1.0/COMMAND_FREQUENCY));
-    pid_init(&pid_pitch, configuration.p_gaing, configuration.i_gaing, 0, 300, (1.0/COMMAND_FREQUENCY));
+    pid_init(&pid_roll, configuration.p_gaing, configuration.i_gaing, 0, 300, (1.0/COMMAND_FREQUENCY), 'r');
+    pid_init(&pid_pitch, configuration.p_gaing, configuration.i_gaing, 0, 300, (1.0/COMMAND_FREQUENCY), 'p');
 
 #if BLACKBOX_ENABLED
     blackbox_init();
