@@ -100,8 +100,8 @@ int motors_init(void)
 #define MIN_VALUE 1000
 #define MAX_VALUE 2000
 
-#define MIN_IN_FLY 1200
-#define MAX_IN_FLY 2000
+#define MIN_IN_FLY 1150
+#define MAX_IN_FLY 1350
 
 static unsigned int
 _velocity_set(unsigned short value, unsigned short min, unsigned short max)
