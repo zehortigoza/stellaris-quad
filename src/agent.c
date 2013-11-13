@@ -46,7 +46,7 @@ static void _timer1_reset(void);
 #define YAW_DIRECTION 1//or -1 to other side
 
 //to quad X mode
-static void motor_command_apply(short command_roll, short command_pitch, short command_yaw)
+static void motor_command_apply(int command_roll, int command_pitch, int command_yaw)
 {
     unsigned short fl, fr, bl, br;
 
@@ -299,15 +299,16 @@ static void
 _sensor_cb(float roll, float pitch, float yaw)
 {
     static unsigned short command_counter = 0;
-    short command_roll, command_pitch;
-    int int_roll, int_pitch;
+    int command_roll, command_pitch;
+    int int_roll = roll;
+    int int_pitch = pitch;
 
     if (!(flags & MOTOR_ON_FLAG))
     {
         if (flags & REQUESTING_ORIENTATION)
             _orientation_send(roll, pitch, yaw);
 #if BLACKBOX_ENABLED
-        blackbox_orientation_set(roll, pitch);
+        blackbox_orientation_set(int_roll, int_pitch);
 #endif
         return;
     }
@@ -320,8 +321,6 @@ _sensor_cb(float roll, float pitch, float yaw)
     }
     command_counter = 0;
 
-    int_roll = roll;
-    int_pitch = pitch;
     command_roll = pid_update(&pid_roll, receiver_roll, int_roll);
     command_pitch = pid_update(&pid_pitch, receiver_pitch, int_pitch);
 
@@ -329,7 +328,7 @@ _sensor_cb(float roll, float pitch, float yaw)
 
     _orientation_send(roll, pitch, yaw);
 #if BLACKBOX_ENABLED
-    blackbox_orientation_set(roll, pitch);
+    blackbox_orientation_set(int_roll, int_pitch);
 #endif
 }
 

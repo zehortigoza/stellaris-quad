@@ -14,9 +14,9 @@ void pid_init(pid_data *pid, float p_gaing, float i_gain, float d_gain, float in
 
 float pid_update(pid_data *pid, int target, int current)
 {
-    float pid_error = target - current;
-    float d_err, output;
-    float p_output, i_output, d_output;
+    double pid_error = target - current;
+    double d_err, output;
+    double p_output, i_output, d_output;
 
     //integral term
     pid->integrated_error += (pid_error * pid->time_period);
