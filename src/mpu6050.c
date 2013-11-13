@@ -1,8 +1,8 @@
 #include "main.h"
 #include "mpu6050.h"
 #include "i2c.h"
-#include "MadgwickAHRS.h"
-//#include "MahonyAHRS.h"
+//#include "MadgwickAHRS.h"
+#include "MahonyAHRS.h"
 #include <math.h>
 
 #define MPU6050_ADDR 0x0068//ADO = low
@@ -265,8 +265,8 @@ static void _raw_cb(unsigned char *data)
     gy = _deg2rad(gy);
     gz = _deg2rad(gz);
 
-    MadgwickAHRSupdateIMU(gx, gy, gz, ax, ay, az, &roll, &pitch, &yaw, _euler_angles_calc);
-    //MahonyAHRSupdateIMU(gx, gy, gz, ax, ay, az, &roll, &pitch, &yaw, _euler_angles_calc);
+    //MadgwickAHRSupdateIMU(gx, gy, gz, ax, ay, az, &roll, &pitch, &yaw, _euler_angles_calc);
+    MahonyAHRSupdateIMU(gx, gy, gz, ax, ay, az, &roll, &pitch, &yaw, _euler_angles_calc);
 
     //while calibrating, do not send values to agent module
     if (_remove_euler_offsets(&roll, &pitch, &yaw))
