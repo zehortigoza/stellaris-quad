@@ -1,6 +1,9 @@
 #include "main.h"
 #include "pid.h"
 
+//an error more than 35 cause integrated error be set to zero
+#define ERROR_THRESHOLD 35
+
 void pid_init(pid_data *pid, float p_gaing, float i_gain, float d_gain, float integraded_error_limit, float time_period, char id)
 {
     pid->p_gain = p_gaing;
@@ -20,6 +23,8 @@ float pid_update(pid_data *pid, int target, int current)
 
     //integral term
     pid->integrated_error += (pid_error * pid->time_period);
+    if (pid_error > ERROR_THRESHOLD || pid_error < -ERROR_THRESHOLD)
+        pid->integrated_error = 0;
     i_output = pid->i_gain * pid->integrated_error;
     if (i_output < (-pid->integraded_error_limit))
         i_output = -pid->integraded_error_limit;
