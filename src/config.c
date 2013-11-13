@@ -4,13 +4,13 @@
 //as memory is filled with "1"s, to valid that a version is on flash
 //only choose version that is not full of zeros
 #define VERSION 10
-#define DEFAULT_P_GAIN 15
-#define DEFAULT_I_GAIN 0.01
+#define DEFAULT_P_GAIN 5
+#define DEFAULT_I_GAIN 0.005
 
 #define FLASH_OFFSET (0x0003FFFC-sizeof(config))
 
 //only set this to 1 when develop was finish
-//write flash every time stelaris is programed
+//write flash every time stellaris is programed
 //will decrease the flash life.
 #define ALLOW_WRITE_IN_FLASH 1
 
