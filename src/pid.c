@@ -36,9 +36,8 @@ float pid_update(pid_data *pid, int target, int current)
 
     output = p_output + i_output + d_output;
 
-
 #if BLACKBOX_ENABLED
-    blackbox_pid_values(pid->id, pid->integrated_error, p_output, i_output, d_output);
+    blackbox_pid_values(pid->id, target, pid_error, pid->integrated_error, p_output, i_output, d_output);
 #endif
 
     return output;
