@@ -358,9 +358,6 @@ void agent_init(void)
 
 void timer1_500ms_interruption(void)
 {
-#if BLACKBOX_ENABLED
-    static char send = 0;
-#endif
     //clear interruption, must be the first thing.
     //more info read documentation
     TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
@@ -368,17 +365,8 @@ void timer1_500ms_interruption(void)
     //remove movements
     receiver_pitch = receiver_roll = receiver_yaw = 0;
 
+    blackbox_send();
+
     //value do count down
     TimerLoadSet(TIMER1_BASE, TIMER_A, SysCtlClockGet() / 2);
-
-#if BLACKBOX_ENABLED
-    //each second
-    if (send == 2)
-    {
-        blackbox_send();
-        send = 0;
-    }
-    else
-        send++;
-#endif
 }
