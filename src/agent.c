@@ -53,7 +53,7 @@ static void motor_command_apply(int command_roll, int command_pitch, int command
     if (throttle < min_throttle)
         throttle = min_throttle;
 
-    fl  = throttle - command_pitch + command_roll - (YAW_DIRECTION * command_yaw);
+    fl = throttle - command_pitch + command_roll - (YAW_DIRECTION * command_yaw);
     fr = throttle - command_pitch - command_roll + (YAW_DIRECTION * command_yaw);
     bl = throttle + command_pitch + command_roll + (YAW_DIRECTION * command_yaw);
     br = throttle + command_pitch - command_roll - (YAW_DIRECTION * command_yaw);
