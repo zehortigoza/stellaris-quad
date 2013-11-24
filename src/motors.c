@@ -127,6 +127,7 @@ void motors_velocity_set(unsigned short fl, unsigned short fr, unsigned short bl
     motors_tricks[1] = _velocity_set(fr, min, max);
     motors_tricks[2] = _velocity_set(bl, min, max);
     motors_tricks[3] = _velocity_set(br, min, max);
+    blackbox_velocity_set(fl, fr, bl, br);
 }
 
 unsigned short motors_min_velocity_in_flight(void)

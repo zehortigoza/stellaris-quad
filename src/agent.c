@@ -71,7 +71,6 @@ static void motor_command_apply(int command_roll, int command_pitch, int command
 
 #if BLACKBOX_ENABLED
     blackbox_commands_set(throttle, command_pitch, command_roll);
-    blackbox_velocity_set(fl, fr, bl, br);
 #endif
 }
 
