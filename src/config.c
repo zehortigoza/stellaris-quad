@@ -4,7 +4,7 @@
 //as memory is filled with "1"s, to valid that a version is on flash
 //only choose version that is not full of zeros
 #define VERSION 10
-#define DEFAULT_P_GAIN 5
+#define DEFAULT_P_GAIN 1
 #define DEFAULT_I_GAIN 0.005
 
 #define FLASH_OFFSET (0x0003FFFC-sizeof(config))
