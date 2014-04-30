@@ -38,6 +38,21 @@ void blackbox_velocity_set(unsigned short fl, unsigned short fr, unsigned short 
     m_fr = fr;
     m_bl = bl;
     m_br = br;
+
+    if (m_br == 0 && m_fr == 0 && m_bl == 0 && m_br == 0)
+    {
+        roll_integrated_error = 0;
+        roll_i_output = 0;
+        roll_p_output = 0;
+        roll_error = 0;
+        roll_target = 0;
+
+        pitch_integrated_error = 0;
+        pitch_i_output = 0;
+        pitch_p_output = 0;
+        pitch_error = 0;
+        pitch_target = 0;
+    }
 }
 
 void blackbox_pid_values(char pid, int target, float error, float integrated_error, float p_output, float i_output, float d_output)
