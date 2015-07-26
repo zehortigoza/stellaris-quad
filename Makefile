@@ -1,195 +1,135 @@
+# Copyright (c) 2012, Mauro Scomparin
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Mauro Scomparin nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY Mauro Scomparin ``AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Mauro Scomparin BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# File:			Makefile.
+# Author:		Mauro Scomparin <http://scompoprojects.worpress.com>.
+# Version:		1.0.0.
+# Description:	Sample makefile.
 
-#Taget Binary Name
-TARGET      = proj0
+#==============================================================================
+#           Cross compiling toolchain / tools specifications
+#==============================================================================
 
-# List all the source files here
-SOURCES    += main.c
-SOURCES    += stellariscommon.c
-SOURCES    += startup.c
-SOURCES    += syscalls.c
-SOURCES    += agent.c
-SOURCES    += MadgwickAHRS.c
-#SOURCES    += MahonyAHRS.c
-SOURCES    += i2c.c
-SOURCES    += motors.c
-SOURCES    += mpu6050.c
-SOURCES    += protocol.c
-SOURCES    += radio.c
-SOURCES    += pid.c
-SOURCES    += config.c
-SOURCES    += blackbox.c
+# Prefix for the arm-eabi-none toolchain.
+# I'm using codesourcery g++ lite compilers available here:
+# http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/
+PREFIX_ARM = arm-none-eabi
 
-#SOURCES  = $(wildcard src/*.c)
+# Microcontroller properties.
+PART=LM4F120H5QR
+CPU=-mcpu=cortex-m4
+FPU=-mfpu=fpv4-sp-d16 -mfloat-abi=softfp
 
-# Includes are located in the Include directory
-INCLUDES    = -Isrc/include
+# Stellarisware path
+STELLARISWARE_PATH=/home/zehortigoza/dev/stellaris/SW-EK-LM4F120XL-9453/
 
-# Path to the root of your ARM toolchain
-TOOL        = /home/zehortigoza/sat/
+# Program name definition for ARM GNU C compiler.
+CC      = ${PREFIX_ARM}-gcc
+# Program name definition for ARM GNU Linker.
+LD      = ${PREFIX_ARM}-ld
+# Program name definition for ARM GNU Object copy.
+CP      = ${PREFIX_ARM}-objcopy
+# Program name definition for ARM GNU Object dump.
+OD      = ${PREFIX_ARM}-objdump
 
-# Path to the root of your StellarisWare folder
-SW_DIR      =  /home/zehortigoza/dev/stellaris/Examples/
+# Option arguments for C compiler.
+CFLAGS=-mthumb ${CPU} ${FPU} -O0 -ffunction-sections -fdata-sections -MD -std=c99 -Wall -pedantic -c -g
+CFLAGS+= -Wextra -Wshadow -Wno-unused-parameter -Wvla -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wmissing-declarations -Wmissing-noreturn -Wendif-labels -Wstrict-aliasing=2 -Wwrite-strings -Wno-long-long -Wno-overlength-strings -Wno-missing-field-initializers -Wno-nested-externs -Wchar-subscripts -Wtype-limits -Wuninitialized
 
-# Location of a loader script, doesnt matter which one, they're the same
-LD_SCRIPT   = lm4f120h5qr.ld
+# Library stuff passed as flags!
+CFLAGS+= -I ${STELLARISWARE_PATH} -DPART_$(PART) -c -DTARGET_IS_BLIZZARD_RA1
 
-# Object File Directory, keeps things tidy
-OBJECTS     = $(patsubst %.o, .obj/%.o,$(SOURCES:.c=.o))
-ASMS        = $(patsubst %.s, .obj/%.s,$(SOURCES:.c=.s))
+# Flags for LD
+LFLAGS  = --gc-sections
 
-# FPU Type
-#FPU         = hard
-FPU         = softfp
+# Flags for objcopy
+CPFLAGS = -Obinary
 
-# Remove # to enable verbose
-VERBOSE     = #1
+# flags for objectdump
+ODFLAGS = -S
 
+# I want to save the path to libgcc, libc.a and libm.a for linking.
+# I can get them from the gcc frontend, using some options.
+# See gcc documentation
+LIB_GCC_PATH=${shell ${CC} ${CFLAGS} -print-libgcc-file-name}
+LIBC_PATH=${shell ${CC} ${CFLAGS} -print-file-name=libc.a}
+LIBM_PATH=${shell ${CC} ${CFLAGS} -print-file-name=libm.a}
 
-# Flag Definitions
-###############################################################################
-CFLAGS     += -mthumb
-CFLAGS     += -mcpu=cortex-m4
-CFLAGS     += -mfloat-abi=$(FPU)
-CFLAGS     += -mfpu=fpv4-sp-d16
-CFLAGS     += -Os
-CFLAGS     += -ffunction-sections
-CFLAGS     += -fdata-sections
-CFLAGS     += -MD
-CFLAGS     += -std=c99
-CFLAGS     += -Wall -Wextra -Wshadow -Wno-unused-parameter -Wvla -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wmissing-declarations -Wmissing-noreturn -Wendif-labels -Wstrict-aliasing=2 -Wwrite-strings -Wno-long-long -Wno-overlength-strings -Wno-missing-field-initializers -Wno-nested-externs -Wchar-subscripts -Wtype-limits -Wuninitialized
-CFLAGS     += -pedantic
-CFLAGS     += -DPART_LM4F120H5QR
-CFLAGS     += -Dgcc
-CFLAGS     += -DTARGET_IS_BLIZZARD_RA1
-CFLAGS     += -fsingle-precision-constant
-CFLAGS     += -I$(SW_DIR) $(INCLUDES)
+# Uploader tool path.
+# Set a relative or absolute path to the upload tool program.
+# I used this project: https://github.com/utzig/lm4tools
+FLASHER=/home/zehortigoza/dev/stellaris/lm4tools/lm4flash/lm4flash
+# Flags for the uploader program.
+FLASHER_FLAGS=
 
-ifeq ($(FPU),hard)
-	LIBGCC  = $(TOOL)/lib/gcc/arm-none-eabi/4.7.3/thumb/cortex-m4/float-abi-hard/fpuv4-sp-d16/libgcc.a
-	LIBM    = $(TOOL)/arm-none-eabi/lib/thumb/cortex-m4/float-abi-hard/fpuv4-sp-d16/libm.a
-	LIBC    = $(TOOL)/arm-none-eabi/lib/thumb/cortex-m4/float-abi-hard/fpuv4-sp-d16/libc.a
-	DRIVER_LIB	= $(SW_DIR)/driverlib/gcc-cm4f-hard/libdriver-cm4f-hard.a
-else
-	LIBGCC  = $(TOOL)/lib/gcc/arm-none-eabi/4.7.3/thumb/cortex-m4/libgcc.a
-	LIBM    = $(TOOL)/arm-none-eabi/lib/thumb/cortex-m4/libm.a
-	LIBC    = $(TOOL)/arm-none-eabi/lib/thumb/cortex-m4/libc.a
-	DRIVER_LIB	= $(SW_DIR)/driverlib/gcc-cm4f/libdriver-cm4f.a
-endif
+#==============================================================================
+#                         Project properties
+#==============================================================================
 
-LIBS        = '$(LIBM)' '$(LIBC)' '$(LIBGCC)' '$(DRIVER_LIB)'
+# Project name (W/O .c extension eg. "main")
+PROJECT_NAME = bin/stellaris-quad
+# Startup file name (W/O .c extension eg. "LM4F_startup")
+STARTUP_FILE = LM4F_startup
+# Linker file name
+LINKER_FILE = LM4F.ld
 
-LDFLAGS    += -T $(LD_SCRIPT)
-LDFLAGS    += --entry ResetISR
-LDFLAGS    += --gc-sections
-LDFLAGS    += -Map .obj/$(TARGET).map
-LDFLAGS    += --cref
-LDFLAGS    += -nostdlib
-###############################################################################
+SRC = $(wildcard src/*.c)
+OBJS = $(SRC:.c=.o)
+HEADERS = src/include/
 
+#==============================================================================
+#                      Rules to make the target
+#==============================================================================
 
-# Tool Definitions
-###############################################################################
-CC          = $(TOOL)/bin/arm-none-eabi-gcc
-LD          = $(TOOL)/bin/arm-none-eabi-ld
-AR          = $(TOOL)/bin/arm-none-eabi-ar
-AS          = $(TOOL)/bin/arm-none-eabi-as
-NM          = $(TOOL)/bin/arm-none-eabi-nm
-OBJCOPY     = $(TOOL)/bin/arm-none-eabi-objcopy
-OBJDUMP     = $(TOOL)/bin/arm-none-eabi-objdump
-RANLIB      = $(TOOL)/bin/arm-none-eabi-ranlib
-STRIP       = $(TOOL)/bin/arm-none-eabi-strip
-SIZE        = $(TOOL)/bin/arm-none-eabi-size
-READELF     = $(TOOL)/bin/arm-none-eabi-readelf
-DEBUG       = $(TOOL)/bin/arm-none-eabi-gdb
-FLASH       = /home/zehortigoza/dev/stellaris/lm4tools/lm4flash/lm4flash
-CP          = cp -p
-RM          = rm -rf
-MV          = mv
-MKDIR       = mkdir -p
-###############################################################################
+#make all rule
+all: $(OBJS) ${PROJECT_NAME}.axf ${PROJECT_NAME}
 
+%.o: %.c
+	$(CC) -c $(CFLAGS) -I $(HEADERS) ${<} -o ${@}
 
-# Command Definitions, Leave it alone unless you hate yourself.
-###############################################################################
-all: dirs bin/$(TARGET).bin size
+${PROJECT_NAME}.axf: $(OBJS)
+	@echo
+	@echo Making driverlib
+	$(MAKE) -C ${STELLARISWARE_PATH}driverlib/
+	@echo
+	@echo Linking...
+	$(LD) -T $(LINKER_FILE) $(LFLAGS) -o ${PROJECT_NAME}.axf $(OBJS) ${STELLARISWARE_PATH}driverlib/gcc-cm4f/libdriver-cm4f.a $(LIBM_PATH) $(LIBC_PATH) $(LIB_GCC_PATH)
 
-asm: $(ASMS)
+${PROJECT_NAME}: ${PROJECT_NAME}.axf
+	@echo
+	@echo Copying...
+	$(CP) $(CPFLAGS) ${PROJECT_NAME}.axf ${PROJECT_NAME}.bin
+	@echo
+	@echo Creating list file...
+	$(OD) $(ODFLAGS) ${PROJECT_NAME}.axf > ${PROJECT_NAME}.lst
 
-# Compiler Command
-.obj/%.o: src/%.c
-	@if [ 'x${VERBOSE}' = x ];                                                \
-	 then                                                                     \
-	     echo "CC           ${<}";                                            \
-	 else                                                                     \
-	     echo $(CC) -c $(CFLAGS) -o $@ $<;                                    \
-	 fi
-	@$(MKDIR) $(dir $@)
-	@$(CC) -c $(CFLAGS) -o $@ $<
-
-# Create Assembly
-.obj/%.s: src/%.c
-	@if [ 'x${VERBOSE}' = x ];                                                \
-	 then                                                                     \
-	     echo "CC -S        ${<}";                                            \
-	 else                                                                     \
-	     echo $(CC) -S -c $(CFLAGS) -o $@ $<;                                 \
-	 fi
-	@$(MKDIR) $(dir $@)
-	@$(CC) -S -c $(CFLAGS) -o $@ $<
-
-# Linker Command
-.obj/$(TARGET).out: $(OBJECTS)
-	@if [ 'x${VERBOSE}' = x ];                                                \
-	 then                                                                     \
-	     echo "LD           $@";                                              \
-	 else                                                                     \
-	     echo $(LD) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS);\
-	 fi
-	@$(LD) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS);
-
-# Create the Final Image
-bin/$(TARGET).bin: .obj/$(TARGET).out
-	@if [ 'x${VERBOSE}' = x ];                                                \
-	 then                                                                     \
-	     echo "OBJCOPY      ${<} $@";                                         \
-	 else                                                                     \
-	     echo $(OBJCOPY) -O binary .obj/$(TARGET).out bin/$(TARGET).bin;      \
-	 fi
-	@$(OBJCOPY) -O binary .obj/$(TARGET).out bin/$(TARGET).bin
-
-# Calculate the Size of the Image
-size: .obj/$(TARGET).out
-	@if [ 'x${VERBOSE}' = x ];                                                \
-	 then                                                                     \
-	     echo "SIZE      ${<}";                                               \
-	 else                                                                     \
-	     echo $(SIZE) $<;                                                     \
-	 fi
-	@$(SIZE) $<
-
-
-# Create the Directories we need
-dirs:
-	@$(MKDIR) src/include
-	@$(MKDIR) bin
-	@$(MKDIR) .obj
-
-# Cleanup
+# make clean rule
 clean:
-	-$(RM) .obj/*
-	-$(RM) bin/*
+	rm bin/*.bin src/*.o src/*.d bin/*.axf bin/*.lst
 
-# Flash The Board
-install: all
-	@if [ 'x${VERBOSE}' = x ];                                                \
-	 then                                                                     \
-	     echo "  FLASH    bin/$(TARGET).bin";                                 \
-	 else                                                                     \
-	     echo sudo $(FLASH) bin/$(TARGET).bin;                                \
-	 fi
-	@sudo $(FLASH) bin/$(TARGET).bin
-
-# Redo, Clean->Compile Fresh Image, and Install It.
-redo: clean all install
-###############################################################################
-
+# Rule to load the project to the board
+# I added a sudo because it's needed without a rule.
+load:
+	sudo ${FLASHER} ${PROJECT_NAME}.bin ${FLASHER_FLAGS}

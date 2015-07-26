@@ -1,0 +1,6 @@
+Build instructions:
+- Install arm-none-eabi toolchain
+- Download and build the flasher - https://github.com/utzig/lm4tools
+- Download StellarisWare library from Texas Instruments - link http://www.ti.com/tool/sw-ek-lm4f120xl
+- Edit FLASHER directory on Makefile
+- Edit STELLARISWARE_PATH directory on Makefile

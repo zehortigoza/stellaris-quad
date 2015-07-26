@@ -18,23 +18,8 @@ int _write(int file, char *ptr, unsigned int len);
 
 caddr_t _sbrk(unsigned int incr)
 {
-    extern unsigned long _heap_bottom;
-    extern unsigned long _heap_top;
-    static char *prev_heap_end;
-
-    if (heap_end == 0) {
-        heap_end = (caddr_t)&_heap_bottom;
-    }
-
-    prev_heap_end = heap_end;
-
-    if (heap_end + incr > (caddr_t)&_heap_top) {
-        return (caddr_t)0;
-    }
-
-    heap_end += incr;
-
-    return (caddr_t) prev_heap_end;
+    while(1);
+    return NULL;
 }
 
 int _close(int file)
