@@ -133,3 +133,6 @@ clean:
 # I added a sudo because it's needed without a rule.
 load:
 	sudo ${FLASHER} ${PROJECT_NAME}.bin ${FLASHER_FLAGS}
+
+debug:
+	./gdb_load

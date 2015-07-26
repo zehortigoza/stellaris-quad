@@ -4,3 +4,7 @@ Build instructions:
 - Download StellarisWare library from Texas Instruments - link http://www.ti.com/tool/sw-ek-lm4f120xl
 - Edit FLASHER directory on Makefile
 - Edit STELLARISWARE_PATH directory on Makefile
+
+To enabling GDB debug
+- Follow the instructions to build OpenOCD from here http://processors.wiki.ti.com/index.php/Stellaris_Launchpad_with_OpenOCD_and_Linux
+then update the ek-lm4f120xl.cfg directoy on gdb_load file.
