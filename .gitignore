@@ -15,3 +15,5 @@
 *.bin
 *.lst
 *.axf
+
+thirdparty/lm4tools/

@@ -1,7 +1,5 @@
 Build instructions:
 - Install arm-none-eabi toolchain
-- Download and build the flasher - https://github.com/utzig/lm4tools
-- Edit FLASHER directory on Makefile
 
 To enabling GDB debug
 - Follow the instructions to build OpenOCD from here http://processors.wiki.ti.com/index.php/Stellaris_Launchpad_with_OpenOCD_and_Linux

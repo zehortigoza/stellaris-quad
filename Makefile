@@ -80,7 +80,7 @@ LIBM_PATH=${shell ${CC} ${CFLAGS} -print-file-name=libm.a}
 # Uploader tool path.
 # Set a relative or absolute path to the upload tool program.
 # I used this project: https://github.com/utzig/lm4tools
-FLASHER=/home/zehortigoza/dev/stellaris/lm4tools/lm4flash/lm4flash
+FLASHER=thirdparty/lm4tools/lm4flash/lm4flash
 # Flags for the uploader program.
 FLASHER_FLAGS=
 
@@ -133,6 +133,7 @@ clean:
 # Rule to load the project to the board
 # I added a sudo because it's needed without a rule.
 load:
+	test -d thirdparty/lm4tools || (cd thirdparty && git clone https://github.com/utzig/lm4tools && cd lm4tools/lm4flash && make)
 	sudo ${FLASHER} ${PROJECT_NAME}.bin ${FLASHER_FLAGS}
 
 debug:
