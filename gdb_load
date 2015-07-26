@@ -1,5 +1,5 @@
 sudo killall openocd
-sudo openocd --file /home/zehortigoza/dev/stellaris/openocd/install/share/openocd/scripts/board/ek-lm4f120xl.cfg &
+sudo thirdparty/openocd/install/bin/openocd --file thirdparty/openocd/install/share/openocd/scripts/board/ek-lm4f120xl.cfg &
 sleep 2
 arm-none-eabi-gdb --command=gdb_startup_commands bin/stellaris-quad.axf
 sudo killall openocd

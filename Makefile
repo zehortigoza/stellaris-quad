@@ -137,4 +137,5 @@ load:
 	sudo ${FLASHER} ${PROJECT_NAME}.bin ${FLASHER_FLAGS}
 
 debug:
+	test -d thirdparty/openocd || (cd thirdparty && git clone http://git.code.sf.net/p/openocd/code openocd && cd openocd && ./bootstrap && ./configure --enable-maintainer-mode --enable-ti-icdi --prefix=${abspath thirdparty/openocd/install} && make && make install)
 	./gdb_load
