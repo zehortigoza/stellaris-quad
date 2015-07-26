@@ -43,7 +43,7 @@ CPU=-mcpu=cortex-m4
 FPU=-mfpu=fpv4-sp-d16 -mfloat-abi=softfp
 
 # Stellarisware path
-STELLARISWARE_PATH=/home/zehortigoza/dev/stellaris/SW-EK-LM4F120XL-9453/
+STELLARISWARE_PATH=thirdparty/stellarisware/
 
 # Program name definition for ARM GNU C compiler.
 CC      = ${PREFIX_ARM}-gcc
@@ -127,6 +127,7 @@ ${PROJECT_NAME}: ${PROJECT_NAME}.axf
 
 # make clean rule
 clean:
+	$(MAKE) -C ${STELLARISWARE_PATH}driverlib/ clean
 	rm bin/*.bin src/*.o src/*.d bin/*.axf bin/*.lst
 
 # Rule to load the project to the board
