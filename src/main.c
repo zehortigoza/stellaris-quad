@@ -1,8 +1,13 @@
 #include "main.h"
 #include "agent.h"
+#include <string.h>
+#include <stdio.h>
 
 int main(void)
 {
+    char msg[512];
+    int a;
+
     /*
      * Enable lazy stacking for interrupt handlers.  This allows floating-point
      * instructions to be used within interrupt handlers, but at the expense of
@@ -34,7 +39,13 @@ int main(void)
     UARTEnable(UART0_BASE);
 #endif
 
-    agent_init();
+    //agent_init();
+
+    a = strlen("Test");
+    a++;
+    snprintf(msg, sizeof(msg), "^;z;1;\"gains\":{\"p\": %d,\"i\": %d};$\n", 0, 0);
+
+    snprintf(msg, sizeof(msg), "^;z;1;\"gains\":{\"p\": %0.3f,\"i\": %0.3f};$\n", 0.0, 0.0);
 
     while(1)
         SysCtlDelay(100);
